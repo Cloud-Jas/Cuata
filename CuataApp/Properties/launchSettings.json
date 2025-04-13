@@ -1,0 +1,10 @@
+{
+  "profiles": {
+    "Cuata": {
+      "commandName": "Project"
+    },
+    "Container (Dockerfile)": {
+      "commandName": "Docker"
+    }
+  }
+}

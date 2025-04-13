@@ -1,0 +1,31 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.11.35208.52
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Cuata", "CuataApp\Cuata.csproj", "{D155DE24-1B74-4586-8A92-CEE448DCE991}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Cuata.MeetingsIngestor", "Cuata.MeetingsIngestor\Cuata.MeetingsIngestor.csproj", "{EBB50BF7-FEAE-4195-98DD-02F29E30ADDB}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{D155DE24-1B74-4586-8A92-CEE448DCE991}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D155DE24-1B74-4586-8A92-CEE448DCE991}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D155DE24-1B74-4586-8A92-CEE448DCE991}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D155DE24-1B74-4586-8A92-CEE448DCE991}.Release|Any CPU.Build.0 = Release|Any CPU
+		{EBB50BF7-FEAE-4195-98DD-02F29E30ADDB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{EBB50BF7-FEAE-4195-98DD-02F29E30ADDB}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{EBB50BF7-FEAE-4195-98DD-02F29E30ADDB}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{EBB50BF7-FEAE-4195-98DD-02F29E30ADDB}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {33BC15C1-C0A8-491A-A38B-A600E747F6B5}
+	EndGlobalSection
+EndGlobal
