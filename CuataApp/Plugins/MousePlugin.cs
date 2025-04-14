@@ -10,9 +10,15 @@ namespace Cuata.Plugins
       private readonly InputSimulator _inputSimulator = new InputSimulator();
 
       [KernelFunction, Description("Moves the mouse to the specified screen coordinates.")]
-      public void MoveMouse([Description("The X coordinate.")] int x, [Description("The Y coordinate.")] int y)
+      public void MoveMouse([Description("The X coordinate.")] int x, [Description("The Y coordinate.")] int y, [Description("The screen width.")] int screenWidth, [Description("The screen height.")] int screenHeight)
       {
-         _inputSimulator.Mouse.MoveMouseTo(x, y);
+
+         Console.WriteLine($"🖱️ Moving the mouse to coordinates ({x}, {y}) on a screen of size ({screenWidth}, {screenHeight})");
+
+         double X = x * 65535 / 2560;
+         double Y = y * 65535 / 1600;
+
+         _inputSimulator.Mouse.MoveMouseTo(X, Y);
          Console.ForegroundColor = ConsoleColor.Cyan;
          Console.WriteLine($"🖱️ Moved the mouse to coordinates ({x}, {y})");
          Console.ResetColor();

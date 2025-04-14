@@ -12,6 +12,7 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using System.Text.Json;
 using Azure.Core;
+using Microsoft.CognitiveServices.Speech;
 
 namespace Cuata.Modules
 {
@@ -24,6 +25,7 @@ namespace Cuata.Modules
       private readonly IConfiguration _configuration;
       private readonly bool _isAutomaticTelemetryEnabled;
       private readonly IServiceProvider _serviceProvider;
+      private readonly SpeechRecognizer _recognizer;
 
       public CuaAgent(
           TracingContextCache itemsCache,
@@ -32,7 +34,8 @@ namespace Cuata.Modules
           IOtelTracingHandler otelTracingHandler,
           IConfiguration configuration,
           ITelemetryToggleService telemetryToggleService,
-          IServiceProvider serviceProvider)
+          IServiceProvider serviceProvider,
+          SpeechRecognizer speechRecognizer)
       {
          _itemsCache = itemsCache;
          _kernelService = kernelService;
@@ -41,6 +44,7 @@ namespace Cuata.Modules
          _configuration = configuration;
          _isAutomaticTelemetryEnabled = telemetryToggleService.IsEnabled;
          _serviceProvider = serviceProvider;
+         _recognizer = speechRecognizer;
       }
 
       public async Task ExecutePlannedActionsAsync(string userGoal)
@@ -48,11 +52,18 @@ namespace Cuata.Modules
 
          var actions = await GetActionStepsAsync(userGoal);
 
+         if(_kernel.Plugins.Count > 0)
+         {
+            _kernel.Plugins.Clear();
+         }
+
          _kernel.ImportPluginFromObject(new TimePlugin(), "TimePlugin");
          _kernel.ImportPluginFromObject(new KeyboardPlugin(), "KeyboardPlugin");
          _kernel.ImportPluginFromObject(new MousePlugin(), "MousePlugin");
          _kernel.ImportPluginFromObject(new ChromePlugin(), "ChromePlugin");
          _kernel.ImportPluginFromObject(new ScreenshotPlugin(_kernel), "ScreenshotPlugin");
+         _kernel.ImportPluginFromObject(new LocatePlugin(_kernel, _serviceProvider), "LocatePlugin");
+
 
          for (int i = 0; i < actions.Count; i++)
          {
@@ -71,20 +82,20 @@ namespace Cuata.Modules
 
             You work like a human: you see the screen, think, and interact using the mouse and keyboard. You must always reason based on the screenshot and available context.
 
-            ---
-
-            📸 Visual Understanding:
-
-            - Always start with a request to screenshot of the current screen using the `ScreenshotPlugin`.
-            - Based on the screenshot, you can analyze the screen visually and come up with tasks to perform based on the user’s request.
-            - If you are already on the right screen, you can continue with the same screen and perform the action
-            - If not on the right screen, you can use plugins to navigate to the right screen.
-            - You can use Scroll and do Mouse actions to navigate the screen based on what user asks.
-            - You can analyze the screenshot using your own vision and identify UI elements like buttons, text, links, and form fields.
-            - If the user asks to "click on something", you must first take a screenshot, analyze it, and then extract the appropriate (x, y) coordinate to perform the action.
-            - If coordinates are not explicitly known, infer their position visually using the image provided.
+            You have access to the following plugins:
 
             ---
+
+            Chrome Plugin — `ChromePlugin`:
+            - `OpenUrl("https://www.google.com")`: Opens a webpage in the default browser.
+
+            🖼️ Locate In Screenshot Actions — `LocatePlugin`:
+
+            - `LocateElementInScreenshot("search text")`: Locates the specified text in the screenshot and returns the coordinates of the UI element in the format X,Y.
+
+            📸 Screenshot Actions — `ScreenshotPlugin`:
+
+            - `TakeScreenshotAndVerify`: Takes a screenshot and verifies if the action was successful.
 
             🖱️ Mouse Actions — `MousePlugin`:
 
@@ -116,21 +127,56 @@ namespace Cuata.Modules
 
             🧠 Reasoning Strategy:
 
-            1. Interpret the user’s goal or command.
-            2. Use `ScreenshotPlugin` to visually observe the screen.
-            3. Use your vision model to understand where the desired UI element is (button, link, article).
-            4. Extract or infer (x, y) from the image or the provided vision response.
-            5. Use `MousePlugin` to move and click at that position.
-            6. If input is needed, use `KeyboardPlugin.TypeText()` and `KeyboardPlugin.PressKey("Enter")`.
-            7. Always take a screenshot after an action to verify the result or determine the next step.
+            1. Act like a human: observe the screen, think, and act.
+            2. Use screenshots to verify actions and analyze UI elements.
+            3. Use plugins to perform actions based on observations.
+            4. Always reason based on the current screen and context.
+            5. If you are not sure about the next action, ask for clarification.
 
             ---
 
             🔍 Example Tasks:
 
-            - "Open Google and search for 'latest research in LLMs'" → Open browser → Type → Press Enter → Wait → Screenshot → Vision → Find 2nd article → Click.
-            - "Click on the 'Download' button" → Screenshot → Vision → Find position of 'Download' → Click.
-            - "Type 'Hello' in the chat box and press Enter" → Screenshot → Find chat box → Click → Type → Press Enter.
+            Here a helpful example:
+
+            Example 1: Searches for Stock Market news 
+
+            - Take a screenshot of the current screen to see if we are already on the right page, if yes just proceed to next step
+            - If not, open Google Chrome
+            - Don't locate to type text in the google search box, just type the text in the search box
+            - Type "Stock Market news" in the search box and press enter
+            - Take a screenshot of the page to verify if we done the previous action correctly
+                 
+            Example 2: Search for Elon Musk and find his Wikipedia page
+            
+            - Take a screenshot of the current screen to see if we are already on the right page, if yes just proceed to next step
+            - If not, open Google Chrome
+            - Don't locate to type text in the google search box, just type the text in the search box
+            - Type "Elon Musk" in the search box and press enter
+            - Take a screenshot of the page to verify if we done the previous action correctly
+            - Scroll through the articles and find if there is a Wikipedia page for Elon Musk and click on it
+            - Locate the Wikipedia page and click on it
+            - If not found scroll through the articles and find if there is a Wikipedia page for Elon Musk and click on it
+            - Take a screenshot of the page to verify if we done the previous action correctly
+
+            Example 3: Search for Motherson Sumi and find any article related to it
+            - Take a screenshot of the current screen to see if we are already on the right page, if yes just proceed to next step
+            - If not, open Google Chrome
+            - Don't locate to type text in the google search box, just type the text in the search box
+            - Type "Motherson Sumi" in the search box and press enter
+            - Take a screenshot of the page to verify if we done the previous action correctly
+            - Locate the articles related to Motherson Sumi and click on it
+            - Scroll through the articles and find if there are any articles related to Motherson Sumi
+            - Take a screenshot of the page to verify if we done the previous action correctly
+
+            Example 4: Search for a specific article and find the link to it
+            
+            - Take a screenshot of the current screen to see if we are already on the right page, if yes just proceed to next step
+            - If not, open Google Chrome
+            - Don't locate to type text in the google search box, just type the text in the search box
+            - Locate specific article keywords in the page result and press enter
+            - Take a screenshot of the page to verify if we done the previous action correctly
+            - Scroll through the articles and find if there are any articles related to Motherson Sumi
 
             ---
 
@@ -138,10 +184,10 @@ namespace Cuata.Modules
 
             """
                );
-            
-            if(i>=1)
-             chatHistory.AddUserMessage($"Previous goal: {actions[i-1]}");
-            
+
+            if (i >= 1)
+               chatHistory.AddUserMessage($"Previous goal: {actions[i - 1]}");
+
             var chatService = _kernel.GetRequiredService<IChatCompletionService>();
             chatHistory.AddUserMessage(currentStep);
             request.ChatHistory.Add($"User: {currentStep}");
@@ -217,39 +263,52 @@ namespace Cuata.Modules
          _itemsCache.Add(OpenTelemetryConstants.GEN_AI_REQUEST_MODEL_KEY, "gpt-4o");
 
          Console.ForegroundColor = ConsoleColor.Cyan;
-         Console.WriteLine("🤖 AI Chat with Function Calling. Type 'quit' to exit.\n");
+         Console.WriteLine("🎤 Speak to the AI. Say 'quit' to exit.\n");
          Console.ResetColor();
+         Console.WriteLine("🎧 Starting continuous recognition...\n");
+         await _recognizer.StartContinuousRecognitionAsync();
 
-         while (true)
+         _recognizer.Recognized += async (s, e) =>
          {
-            Console.ForegroundColor = ConsoleColor.Yellow;
-            Console.Write("👤 You: ");
-            Console.ResetColor();
-
-            string input = Console.ReadLine()?.Trim() ?? "";
-
-            await ExecutePlannedActionsAsync(input);
-
-            if (string.Equals(input, "quit", StringComparison.OrdinalIgnoreCase))
+            if (e.Result.Reason == ResultReason.RecognizedSpeech)
             {
-               Console.ForegroundColor = ConsoleColor.Red;
-               Console.WriteLine("👋 Ending chat session...\n");
+               string input = e.Result.Text.Trim();
+               Console.ForegroundColor = ConsoleColor.Yellow;
+               Console.WriteLine($"✔ Final recognized: {input}");
                Console.ResetColor();
-               break;
+               
+               if (string.IsNullOrWhiteSpace(input)) return;
+
+               if (input.Equals("quit", StringComparison.OrdinalIgnoreCase))
+               {
+                  Console.ForegroundColor = ConsoleColor.Red;
+                  Console.WriteLine("🛑 Stopping recognition...");
+                  Console.ResetColor();
+                  await _recognizer.StopContinuousRecognitionAsync();
+               }
+               else
+               {
+                  await ExecutePlannedActionsAsync(input);
+               }
             }
+         };
 
-            if (string.IsNullOrWhiteSpace(input)) continue;
-
-
-         }
-
-         Console.ForegroundColor = ConsoleColor.Magenta;
-         Console.WriteLine("📜 Final Chat History:\n");
-         foreach (var line in request.ChatHistory)
+         _recognizer.Canceled += (s, e) =>
          {
-            Console.WriteLine(line);
-         }
-         Console.ResetColor();
+            Console.ForegroundColor = ConsoleColor.Red;
+            Console.WriteLine($"❌ Canceled: {e.Reason}");
+            Console.ResetColor();
+         };
+
+         _recognizer.SessionStopped += async (s, e) =>
+         {
+            Console.ForegroundColor = ConsoleColor.Cyan;
+            Console.WriteLine("🔚 Session stopped.");
+            Console.ResetColor();
+         };
+
+         await Task.Delay(Timeout.Infinite);
+
       }
 
       public async Task<List<string>> GetActionStepsAsync(string userGoal)
@@ -260,17 +319,25 @@ namespace Cuata.Modules
             """
               You are an powerful desktop automation assistant that breaks down a high-level user goal into precise UI actions.
 
-            - If the user goal is simple, provide a single action in an array, for which you think that single verification of screenshot is enough.
-           
+            - If the user goal is simple, provide a single action in an array.
+            - Your thought process should be clear and concise in such a way that each action should have only one verification step.
             - If the user goal is complex, break it down into multiple actions, each with atleast one verification step and requires screenshot.
 
-            - For example:
-                - Simple goal: [`"Open Google Chrome and search for Elon Musk"`]
-                - Complex goal:
-                  [
-                    `"Open Google Chrome and search for top AI researchers in 2024"`,
-                    `"Scroll through the search results and find an article that matches the category 'research publication'"`
-                  ]
+            🔍 Example Tasks:
+            
+            Here a helpful example:
+            
+            Example 1: Searches for Stock Market news and find any article related to Motherson Sumi
+            [
+                {`"open Google Chrome to search for stock market news and type "Stock Market news" in the search box and press enter"`},
+                {`"scroll through the articles and find if there are any articles related to Motherson sumi"` }
+            ]
+            
+            Example 2: Search for Elon Musk and find his Wikipedia page
+            [
+                {`"open Google Chrome to search for "Elon Musk" and type "Elon Musk" in the search box and press enter"`},
+                {`"scroll through the articles and find if there is a Wikipedia page for Elon Musk and click on it"` }
+            ]
 
             Always return:
             - an array of string/s (if multiple steps with verification are needed).
@@ -286,7 +353,7 @@ namespace Cuata.Modules
          {
             ToolCallBehavior = ToolCallBehavior.AutoInvokeKernelFunctions,
             TopP = 1,
-            Temperature = 0.7
+            Temperature = 0.4
          };
          planHistory.AddUserMessage($"User goal: {userGoal}");
 

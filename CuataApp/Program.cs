@@ -7,6 +7,8 @@ using Cuata.Modules;
 using System;
 using System.Text;
 using Cuata.Services;
+using System.Reflection.Metadata.Ecma335;
+using Microsoft.CognitiveServices.Speech;
 
 class Program
 {
@@ -39,6 +41,16 @@ class Program
               services.AddSingleton<ModuleFactory>();
 
               services.AddSingleton<CuataApp>();
+              services.AddSingleton<OcrProcessorService>();
+              services.AddSingleton<SpeechRecognizer>(serviceProvider =>
+              {
+                 var config = serviceProvider.GetRequiredService<IConfiguration>();
+                 var speechKey = config["CognitiveServicesSpeechKey"];
+                 var speechRegion = config["CognitiveServicesSpeechRegion"];
+
+                 var speechConfig = SpeechConfig.FromSubscription(speechKey, speechRegion);
+                 return new SpeechRecognizer(speechConfig);
+              });
 
               services.AddHostedService<ServiceBusReceiverService>();
 
