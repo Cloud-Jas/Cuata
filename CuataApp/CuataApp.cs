@@ -20,11 +20,11 @@ namespace Cuata
       public async Task Run()
       {
          string[] options = new[]
-    {
-        "💼 Microsoft Teams Integration",
-        "📰 News Reader",
-        "❌ Quit"
-    };
+{
+    "💼 Teams App",
+    "🌐 Browser App",
+    "❌ Quit"
+};
 
          int selectedIndex = 0;
 

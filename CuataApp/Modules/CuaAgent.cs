@@ -63,6 +63,7 @@ namespace Cuata.Modules
          _kernel.ImportPluginFromObject(new ChromePlugin(), "ChromePlugin");
          _kernel.ImportPluginFromObject(new ScreenshotPlugin(_kernel), "ScreenshotPlugin");
          _kernel.ImportPluginFromObject(new LocatePlugin(_kernel, _serviceProvider), "LocatePlugin");
+         _kernel.ImportPluginFromObject(new SummarizePlugin(_kernel), "SummarizePlugin");
 
 
          for (int i = 0; i < actions.Count; i++)
@@ -85,6 +86,10 @@ namespace Cuata.Modules
             You have access to the following plugins:
 
             ---
+
+            Summarize Plugin — `SummarizePlugin`:
+           
+            - `SummarizePage()`: Summarizes the content of the current screen based on the screenshots.
 
             Chrome Plugin — `ChromePlugin`:
             - `OpenUrl("https://www.google.com")`: Opens a webpage in the default browser.
@@ -169,14 +174,25 @@ namespace Cuata.Modules
             - Scroll through the articles and find if there are any articles related to Motherson Sumi
             - Take a screenshot of the page to verify if we done the previous action correctly
 
-            Example 4: Search for a specific article and find the link to it
+            Example 4: Get the summary of the current screen
             
-            - Take a screenshot of the current screen to see if we are already on the right page, if yes just proceed to next step
-            - If not, open Google Chrome
-            - Don't locate to type text in the google search box, just type the text in the search box
-            - Locate specific article keywords in the page result and press enter
+            - Make sure to scroll through the entire page till you reach end
+            - Takes a screenshot of the page till the end of the page
+            - Get the summary of the current screen based on all the image paths of the screenshots
             - Take a screenshot of the page to verify if we done the previous action correctly
-            - Scroll through the articles and find if there are any articles related to Motherson Sumi
+
+            Example 5: Send a summary email to someone
+
+            - Make sure to scroll through the entire page till you reach end or atleast 2 sections
+            - Takes a screenshot of the page till the end of the page
+            - Get the summary of the current screen based on all the image paths of the screenshots
+            - Send an email to someone with the summary of the current screen
+
+            Example 6: Open Microsoft Word and type a summary of the current screen
+
+            - Open Microsoft Word
+            - Type the summary of the current screen
+            - Take a screenshot of the page to verify if we done the previous action correctly
 
             ---
 
@@ -337,6 +353,17 @@ namespace Cuata.Modules
             [
                 {`"open Google Chrome to search for "Elon Musk" and type "Elon Musk" in the search box and press enter"`},
                 {`"scroll through the articles and find if there is a Wikipedia page for Elon Musk and click on it"` }
+            ]
+
+            Example 3: Summarize the content of the current page/screen
+            [
+                {`"Summarize the content of the current page/screen` }
+            ]
+
+            Example 4: Summarize the content of the current page/screen and send an email to someone
+            [
+                {`"Summarize the content of the current page/screen` },
+                {`"Send an email to someone with the summary of the current screen"` }
             ]
 
             Always return:
