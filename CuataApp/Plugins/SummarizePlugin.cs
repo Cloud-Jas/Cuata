@@ -37,19 +37,28 @@ public class SummarizePlugin
       return outputActualPath;
    }
 
-   [KernelFunction, Description("Summarize the content of the current page/screen based on the screenshots")]
-   public async Task<string> SummarizePage()
+   [KernelFunction, Description("Summarize or get the content of the current page/screen")]
+   public async Task<string> SummarizePage([Description("`true` for entire page, `false` for current page ")] bool isFullScreen)
    {
       var imagePaths = new List<string>();
-      for (int i = 0; i < 5; i++)
-      {
-         _inputSimulator.Mouse.VerticalScroll(-10);
-         var direction = -10 > 0 ? "up" : "down";
-         Console.ForegroundColor = ConsoleColor.Yellow;
-         Console.WriteLine($"🖱️ Scrolled the mouse {direction} by {Math.Abs(-10)} click(s)!");
-         Console.ResetColor();
 
-         Thread.Sleep(1500);
+      if (isFullScreen)
+      {
+         for (int i = 0; i < 5; i++)
+         {
+            _inputSimulator.Mouse.VerticalScroll(-10);
+            var direction = -10 > 0 ? "up" : "down";
+            Console.ForegroundColor = ConsoleColor.Yellow;
+            Console.WriteLine($"🖱️ Scrolled the mouse {direction} by {Math.Abs(-10)} click(s)!");
+            Console.ResetColor();
+
+            Thread.Sleep(1500);
+            var imagePath = await TakeScreenshotTillEndOfThePage();
+            imagePaths.Add(imagePath);
+         }
+      }
+      else
+      {
          var imagePath = await TakeScreenshotTillEndOfThePage();
          imagePaths.Add(imagePath);
       }

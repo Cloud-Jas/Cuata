@@ -16,7 +16,7 @@ using Microsoft.CognitiveServices.Speech;
 
 namespace Cuata.Modules
 {
-   internal class CuaAgent : IModule
+   internal class BrowserAgent : IModule
    {
       private readonly TracingContextCache _itemsCache;
       private readonly IKernelService _kernelService;
@@ -27,7 +27,7 @@ namespace Cuata.Modules
       private readonly IServiceProvider _serviceProvider;
       private readonly SpeechRecognizer _recognizer;
 
-      public CuaAgent(
+      public BrowserAgent(
           TracingContextCache itemsCache,
           IKernelService kernelService,
           Kernel kernel,
@@ -64,6 +64,7 @@ namespace Cuata.Modules
          _kernel.ImportPluginFromObject(new ScreenshotPlugin(_kernel), "ScreenshotPlugin");
          _kernel.ImportPluginFromObject(new LocatePlugin(_kernel, _serviceProvider), "LocatePlugin");
          _kernel.ImportPluginFromObject(new SummarizePlugin(_kernel), "SummarizePlugin");
+         _kernel.ImportPluginFromObject(new WordPlugin(), "WordPlugin");
 
 
          for (int i = 0; i < actions.Count; i++)
@@ -87,9 +88,12 @@ namespace Cuata.Modules
 
             ---
 
+            Word Plugin — `WordPlugin`:
+            - `OpenWord()`: Opens Microsoft Word.
+
             Summarize Plugin — `SummarizePlugin`:
            
-            - `SummarizePage()`: Summarizes the content of the current screen based on the screenshots.
+            - `SummarizePage(isFullScreen)`: Summarizes the content of the current screen based on the screenshots.
 
             Chrome Plugin — `ChromePlugin`:
             - `OpenUrl("https://www.google.com")`: Opens a webpage in the default browser.
@@ -191,7 +195,8 @@ namespace Cuata.Modules
             Example 6: Open Microsoft Word and type a summary of the current screen
 
             - Open Microsoft Word
-            - Type the summary of the current screen
+            - Locate blank document and click on it
+            - Now type the summary of the page in the word, that you already summarized
             - Take a screenshot of the page to verify if we done the previous action correctly
 
             ---
@@ -336,6 +341,7 @@ namespace Cuata.Modules
               You are an powerful desktop automation assistant that breaks down a high-level user goal into precise UI actions.
 
             - If the user goal is simple, provide a single action in an array.
+            - Think better, say for example if user asks to open word and type the summary over there, first get the summary of the current screen and then open word and type the summary over there.
             - Your thought process should be clear and concise in such a way that each action should have only one verification step.
             - If the user goal is complex, break it down into multiple actions, each with atleast one verification step and requires screenshot.
 
@@ -364,6 +370,13 @@ namespace Cuata.Modules
             [
                 {`"Summarize the content of the current page/screen` },
                 {`"Send an email to someone with the summary of the current screen"` }
+            ]
+
+            Example 5: Open Microsoft Word and type a summary of the current screen
+            [
+                { `"Get the summary of the current screen"` },
+                {`"Open Microsoft Word"` },
+                {`"Type the summary of the current screen"` }
             ]
 
             Always return:

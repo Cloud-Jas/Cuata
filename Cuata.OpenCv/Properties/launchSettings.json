@@ -1,0 +1,10 @@
+{
+  "profiles": {
+    "Cuata.OpenCv": {
+      "commandName": "Project"
+    },
+    "Container (Dockerfile)": {
+      "commandName": "Docker"
+    }
+  }
+}

@@ -5,7 +5,9 @@ VisualStudioVersion = 17.11.35208.52
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Cuata", "CuataApp\Cuata.csproj", "{D155DE24-1B74-4586-8A92-CEE448DCE991}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Cuata.MeetingsIngestor", "Cuata.MeetingsIngestor\Cuata.MeetingsIngestor.csproj", "{EBB50BF7-FEAE-4195-98DD-02F29E30ADDB}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Cuata.MeetingsIngestor", "Cuata.MeetingsIngestor\Cuata.MeetingsIngestor.csproj", "{EBB50BF7-FEAE-4195-98DD-02F29E30ADDB}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Cuata.OpenCv", "Cuata.OpenCv\Cuata.OpenCv.csproj", "{5F94A04E-456D-4F15-9828-836063C767A5}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -21,6 +23,10 @@ Global
 		{EBB50BF7-FEAE-4195-98DD-02F29E30ADDB}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{EBB50BF7-FEAE-4195-98DD-02F29E30ADDB}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{EBB50BF7-FEAE-4195-98DD-02F29E30ADDB}.Release|Any CPU.Build.0 = Release|Any CPU
+		{5F94A04E-456D-4F15-9828-836063C767A5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5F94A04E-456D-4F15-9828-836063C767A5}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5F94A04E-456D-4F15-9828-836063C767A5}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5F94A04E-456D-4F15-9828-836063C767A5}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

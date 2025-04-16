@@ -7,31 +7,47 @@ using System.Text.Json;
 namespace Cuata.Services;
 public class ServiceBusReceiverService : BackgroundService
 {
-   private readonly ServiceBusProcessor _processor;
+   private readonly ServiceBusClient _client;
+   private readonly ServiceBusProcessor _meetingProcessor;
+   private readonly ServiceBusProcessor _presenceProcessor;
 
    public ServiceBusReceiverService(IConfiguration config)
    {
       var connectionString = config["ServiceBusConnectionString"];
-      var queueName = config["ServiceBusQueueName"];
-      var client = new ServiceBusClient(connectionString);
+      _client = new ServiceBusClient(connectionString);
 
-      _processor = client.CreateProcessor(queueName, new ServiceBusProcessorOptions
+      _meetingProcessor = _client.CreateProcessor("meetings", new ServiceBusProcessorOptions
       {
          MaxConcurrentCalls = 1,
          AutoCompleteMessages = false
       });
 
-      _processor.ProcessMessageAsync += ProcessMessageHandler;
-      _processor.ProcessErrorAsync += ErrorHandler;
+      _presenceProcessor = _client.CreateProcessor("presence", new ServiceBusProcessorOptions
+      {
+         MaxConcurrentCalls = 1,
+         AutoCompleteMessages = false
+      });
+
+      _meetingProcessor.ProcessMessageAsync += ProcessMeetingMessage;
+      _meetingProcessor.ProcessErrorAsync += ErrorHandler;
+
+      _presenceProcessor.ProcessMessageAsync += ProcessPresenceMessage;
+      _presenceProcessor.ProcessErrorAsync += ErrorHandler;
    }
 
-   private async Task ProcessMessageHandler(ProcessMessageEventArgs args)
+   private async Task ProcessMeetingMessage(ProcessMessageEventArgs args)
    {
       var body = args.Message.Body.ToString();
       var meeting = JsonSerializer.Deserialize<MeetingMessage>(body);
+      Console.WriteLine($"📩 Meeting Received: {meeting.Subject} @ {meeting.StartTime}");
+      await args.CompleteMessageAsync(args.Message);
+   }
 
-      Console.WriteLine($"📩 Message Received: {meeting.Subject} @ {meeting.StartTime}");
-
+   private async Task ProcessPresenceMessage(ProcessMessageEventArgs args)
+   {
+      var body = args.Message.Body.ToString();
+      var presence = JsonSerializer.Deserialize<string>(body);
+      Console.WriteLine($"👀 Presence Status Received: {presence}");
       await args.CompleteMessageAsync(args.Message);
    }
 
@@ -43,16 +59,19 @@ public class ServiceBusReceiverService : BackgroundService
 
    protected override async Task ExecuteAsync(CancellationToken stoppingToken)
    {
-      await _processor.StartProcessingAsync(stoppingToken);
-      Console.WriteLine("🟢 Service Bus receiver started");
-      await Task.Delay(Timeout.Infinite, stoppingToken);
+      Console.WriteLine("🟢 Starting both Service Bus receivers...");
+      await _meetingProcessor.StartProcessingAsync(stoppingToken);
+      await _presenceProcessor.StartProcessingAsync(stoppingToken);
+      await Task.Delay(Timeout.Infinite, stoppingToken); // Keeps the service alive
    }
 
    public override async Task StopAsync(CancellationToken cancellationToken)
    {
-      await _processor.StopProcessingAsync();
-      await _processor.DisposeAsync();
-      Console.WriteLine("🔴 Service Bus receiver stopped");
+      Console.WriteLine("🔴 Stopping both Service Bus receivers...");
+      await _meetingProcessor.StopProcessingAsync();
+      await _presenceProcessor.StopProcessingAsync();
+      await _meetingProcessor.DisposeAsync();
+      await _presenceProcessor.DisposeAsync();
       await base.StopAsync(cancellationToken);
    }
 }

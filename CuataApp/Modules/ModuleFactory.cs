@@ -21,7 +21,7 @@ namespace Cuata.Modules
          return selectedIndex switch
          {
             0 => _serviceProvider.GetService<ChatCompletion>(),
-            1 => _serviceProvider.GetService<CuaAgent>(),
+            1 => _serviceProvider.GetService<BrowserAgent>(),
             2 => _serviceProvider.GetService<MultiAgentInteractions>(),
             _ => null
          };

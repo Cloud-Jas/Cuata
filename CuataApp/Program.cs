@@ -36,7 +36,7 @@ class Program
               services.AddTransient<ChatCompletion>();
               services.AddTransient<ChatCompletionWithFunctionCalls>();
               services.AddTransient<MultiAgentInteractions>();
-              services.AddTransient<CuaAgent>();
+              services.AddTransient<BrowserAgent>();
 
               services.AddSingleton<ModuleFactory>();
 
@@ -53,7 +53,6 @@ class Program
               });
 
               services.AddHostedService<ServiceBusReceiverService>();
-
            })
            .Build();
 
@@ -62,6 +61,5 @@ class Program
       var app = host.Services.GetRequiredService<CuataApp>();
       await app.Run();
       await host.StopAsync();
-
    }
 }
