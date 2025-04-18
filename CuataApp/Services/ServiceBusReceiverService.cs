@@ -1,6 +1,8 @@
 ﻿using Azure.Messaging.ServiceBus;
 using Cuata.Models;
+using Cuata.Modules;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using System.Text.Json;
 
@@ -10,8 +12,9 @@ public class ServiceBusReceiverService : BackgroundService
    private readonly ServiceBusClient _client;
    private readonly ServiceBusProcessor _meetingProcessor;
    private readonly ServiceBusProcessor _presenceProcessor;
+   private readonly IServiceProvider _serviceProvider;
 
-   public ServiceBusReceiverService(IConfiguration config)
+   public ServiceBusReceiverService(IConfiguration config, IServiceProvider serviceProvider)
    {
       var connectionString = config["ServiceBusConnectionString"];
       _client = new ServiceBusClient(connectionString);
@@ -33,6 +36,7 @@ public class ServiceBusReceiverService : BackgroundService
 
       _presenceProcessor.ProcessMessageAsync += ProcessPresenceMessage;
       _presenceProcessor.ProcessErrorAsync += ErrorHandler;
+      _serviceProvider = serviceProvider;
    }
 
    private async Task ProcessMeetingMessage(ProcessMessageEventArgs args)
@@ -41,6 +45,8 @@ public class ServiceBusReceiverService : BackgroundService
       var meeting = JsonSerializer.Deserialize<MeetingMessage>(body);
       Console.WriteLine($"📩 Meeting Received: {meeting.Subject} @ {meeting.StartTime}");
       await args.CompleteMessageAsync(args.Message);
+      await _serviceProvider.GetService<TeamsAgent>()!.RunApp(meeting.Subject);
+      await Task.CompletedTask;
    }
 
    private async Task ProcessPresenceMessage(ProcessMessageEventArgs args)
@@ -49,6 +55,9 @@ public class ServiceBusReceiverService : BackgroundService
       var presence = JsonSerializer.Deserialize<string>(body);
       Console.WriteLine($"👀 Presence Status Received: {presence}");
       await args.CompleteMessageAsync(args.Message);
+      bool isPresent = presence!.Equals("present", StringComparison.OrdinalIgnoreCase);
+      PresenceState.Instance.IsPresent = isPresent;
+      await Task.CompletedTask;
    }
 
    private Task ErrorHandler(ProcessErrorEventArgs args)

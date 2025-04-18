@@ -37,25 +37,25 @@ public class SummarizePlugin
       return outputActualPath;
    }
 
-   [KernelFunction, Description("Summarize or get the content of the current page/screen")]
+   [KernelFunction, Description("Summarize or get the content of the current page/screen and always ensure to return the full summary")]
    public async Task<string> SummarizePage([Description("`true` for entire page, `false` for current page ")] bool isFullScreen)
    {
       var imagePaths = new List<string>();
 
       if (isFullScreen)
       {
-         for (int i = 0; i < 5; i++)
-         {
-            _inputSimulator.Mouse.VerticalScroll(-10);
-            var direction = -10 > 0 ? "up" : "down";
-            Console.ForegroundColor = ConsoleColor.Yellow;
-            Console.WriteLine($"🖱️ Scrolled the mouse {direction} by {Math.Abs(-10)} click(s)!");
-            Console.ResetColor();
+         //for (int i = 0; i < 5; i++)
+         //{
+         //   _inputSimulator.Mouse.VerticalScroll(-10);
+         //   var direction = -10 > 0 ? "up" : "down";
+         //   Console.ForegroundColor = ConsoleColor.Yellow;
+         //   Console.WriteLine($"🖱️ Scrolled the mouse {direction} by {Math.Abs(-10)} click(s)!");
+         //   Console.ResetColor();
 
-            Thread.Sleep(1500);
-            var imagePath = await TakeScreenshotTillEndOfThePage();
-            imagePaths.Add(imagePath);
-         }
+         //   Thread.Sleep(1500);
+         //   var imagePath = await TakeScreenshotTillEndOfThePage();
+         //   imagePaths.Add(imagePath);
+         //}
       }
       else
       {
@@ -66,7 +66,7 @@ public class SummarizePlugin
 
       var chatMessage = new ChatMessageContentItemCollection
     {
-        new TextContent("Please summarize the content of the current page/screen in 3 paragraphs.")
+        new TextContent("Please summarize the content of the current page/screen in 3 paragraphs and always ensure to return the full summary and be more descriptive.Don't respond in one line.")
     };
 
       foreach (var imagePath in imagePaths)

@@ -1,9 +1,4 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Cuata.Modules
 {
@@ -20,9 +15,8 @@ namespace Cuata.Modules
       {
          return selectedIndex switch
          {
-            0 => _serviceProvider.GetService<ChatCompletion>(),
+            0 => _serviceProvider.GetService<TeamsAgent>(),
             1 => _serviceProvider.GetService<BrowserAgent>(),
-            2 => _serviceProvider.GetService<MultiAgentInteractions>(),
             _ => null
          };
       }

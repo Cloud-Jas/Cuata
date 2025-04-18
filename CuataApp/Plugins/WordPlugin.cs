@@ -39,7 +39,8 @@ namespace Cuata.Plugins
             string wordPath = GetMicrosoftWordPath();
             Process.Start(wordPath);
             Console.ForegroundColor = ConsoleColor.Green;
-            Console.WriteLine("📄 Microsoft Word opened successfully.");
+            Console.WriteLine("📄 Microsoft Word opened successfully."); 
+            Thread.Sleep(10000);
             Console.ResetColor();
             return "Opened Microsoft Word.";
          }
@@ -52,35 +53,15 @@ namespace Cuata.Plugins
          }
       }
 
-      [KernelFunction, Description("Close the current Microsoft Word document using Ctrl+W shortcut.")]
-      public string CloseWord()
+      [KernelFunction, Description("Writes summary of the page into Word document")]
+      public string WriteWord([Description("Sumamry of the page")]string summary)
       {
-         _input.Keyboard.ModifiedKeyStroke(VirtualKeyCode.CONTROL, VirtualKeyCode.VK_W);
-         Console.ForegroundColor = ConsoleColor.Magenta;
-         Console.WriteLine("🧹 Closed the current Microsoft Word document.");
-         Console.ResetColor();
-         return "Closed current Microsoft Word document.";
-      }
-
-      [KernelFunction, Description("Save the current Microsoft Word document using Ctrl+S shortcut.")]
-      public string ReadWord()
-      {
-         _input.Keyboard.ModifiedKeyStroke(VirtualKeyCode.CONTROL, VirtualKeyCode.VK_S);
-         Console.ForegroundColor = ConsoleColor.Yellow;
-         Console.WriteLine("💾 Saved the current Microsoft Word document.");
-         Console.ResetColor();
-         return "Saved current Microsoft Word document.";
-      }
-
-      [KernelFunction, Description("Print the current Microsoft Word document using Ctrl+P shortcut.")]
-      public string WriteWord()
-      {
-         _input.Keyboard.ModifiedKeyStroke(VirtualKeyCode.CONTROL, VirtualKeyCode.VK_P);
+         _input.Keyboard.TextEntry(summary);
+         _input.Keyboard.KeyPress(VirtualKeyCode.RETURN);
          Console.ForegroundColor = ConsoleColor.Cyan;
-         Console.WriteLine("🖨️ Printed the current Microsoft Word document.");
+         Console.WriteLine("📝 Wrote summary into Word document.");
          Console.ResetColor();
-         return "Printed current Microsoft Word document.";
-
+         return "Wrote summary into Word document.";
       }
 
    }

@@ -2,6 +2,6 @@
 {
    public interface IModule
    {
-      Task RunApp();
+      Task RunApp(string? defaultParam = null);
    }
 }

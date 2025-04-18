@@ -32,14 +32,11 @@ class Program
               services.AddOpenTelemetryTelemetry(configuration, serviceName, serviceVersion);
 
               services.AddSemanticKernel(configuration);
-
-              services.AddTransient<ChatCompletion>();
-              services.AddTransient<ChatCompletionWithFunctionCalls>();
-              services.AddTransient<MultiAgentInteractions>();
+              services.AddTransient<TeamsAgent>();
               services.AddTransient<BrowserAgent>();
 
               services.AddSingleton<ModuleFactory>();
-
+              services.AddSingleton<PresenceState>();
               services.AddSingleton<CuataApp>();
               services.AddSingleton<OcrProcessorService>();
               services.AddSingleton<SpeechRecognizer>(serviceProvider =>

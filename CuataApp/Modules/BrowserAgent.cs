@@ -90,6 +90,7 @@ namespace Cuata.Modules
 
             Word Plugin — `WordPlugin`:
             - `OpenWord()`: Opens Microsoft Word.
+            - `WriteWord(summary)`: Types the summary into the Word document.
 
             Summarize Plugin — `SummarizePlugin`:
            
@@ -194,9 +195,10 @@ namespace Cuata.Modules
 
             Example 6: Open Microsoft Word and type a summary of the current screen
 
+            - Get the summary of the current screen/page
             - Open Microsoft Word
-            - Locate blank document and click on it
-            - Now type the summary of the page in the word, that you already summarized
+            - Locate the text 'blank document' and click on it, to open a new document
+            - Now update the Word document with the summary response
             - Take a screenshot of the page to verify if we done the previous action correctly
 
             ---
@@ -268,7 +270,7 @@ namespace Cuata.Modules
          }
       }
 
-      public async Task RunApp()
+      public async Task RunApp(string? defaultParam)
       {
          AppContext.SetSwitch("Microsoft.SemanticKernel.Experimental.GenAI.EnableOTelDiagnosticsSensitive", _isAutomaticTelemetryEnabled);
 
@@ -300,7 +302,7 @@ namespace Cuata.Modules
                
                if (string.IsNullOrWhiteSpace(input)) return;
 
-               if (input.Equals("quit", StringComparison.OrdinalIgnoreCase))
+               if (input.Equals("quit", StringComparison.OrdinalIgnoreCase)|| input.Equals("quit.", StringComparison.OrdinalIgnoreCase))
                {
                   Console.ForegroundColor = ConsoleColor.Red;
                   Console.WriteLine("🛑 Stopping recognition...");
@@ -374,9 +376,7 @@ namespace Cuata.Modules
 
             Example 5: Open Microsoft Word and type a summary of the current screen
             [
-                { `"Get the summary of the current screen"` },
-                {`"Open Microsoft Word"` },
-                {`"Type the summary of the current screen"` }
+                { `"Open Microsoft Word and type a summary of the current screen"` }
             ]
 
             Always return:

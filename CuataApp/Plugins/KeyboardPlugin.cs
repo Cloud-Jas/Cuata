@@ -65,7 +65,6 @@ namespace Cuata.Plugins
       {
          key = key.Trim().ToUpperInvariant();
 
-         // Try named keys first
          return key switch
          {
             "ENTER" => VirtualKeyCode.RETURN,
@@ -76,6 +75,11 @@ namespace Cuata.Plugins
             "ALT" => VirtualKeyCode.MENU,
             "BACKSPACE" => VirtualKeyCode.BACK,
             "SPACE" => VirtualKeyCode.SPACE,
+            "F4" => VirtualKeyCode.F4,
+            "Win" => VirtualKeyCode.LWIN,
+            "WIN" => VirtualKeyCode.LWIN,
+            "UP" => VirtualKeyCode.UP,
+            "Up" => VirtualKeyCode.UP,
             _ when key.Length == 1 && char.IsLetterOrDigit(key[0]) =>
                 (VirtualKeyCode)Enum.Parse(typeof(VirtualKeyCode), $"VK_{key[0]}"),
             _ => throw new ArgumentException($"Unsupported or invalid key: {key}")
