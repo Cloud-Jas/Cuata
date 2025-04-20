@@ -17,7 +17,7 @@ namespace Cuata.Handlers
 
       public OtelTracingHandler(TracerProvider tracerProvider, TracingContextCache itemsCache, ILogger<OtelTracingHandler> logger)
       {
-         _tracer = tracerProvider.GetTracer("OtelDemo");
+         _tracer = tracerProvider.GetTracer("CuataDemo");
          _itemsCache = itemsCache;
          _logger = logger;
       }
@@ -96,14 +96,7 @@ namespace Cuata.Handlers
          {
             parentSpan?.RecordException(ex);
             parentSpan?.SetAttribute(OpenTelemetryConstants.GEN_AI_ERROR_TYPE, ex.Message);
-            var errorMessage = $"Error occurred while processing the request: {ex.Message}";
-            var errorDetails = JsonConvert.SerializeObject(ex, Formatting.Indented);
-            var errorResponse = new ErrorResponse
-            {
-               Message = errorMessage,
-               Details = errorDetails
-            };
-            return (TResponse)(object)errorResponse;
+            return default!;
          }
          finally
          {

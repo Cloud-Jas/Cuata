@@ -26,7 +26,7 @@ class Program
            .ConfigureServices((context, services) =>
            {
               var configuration = context.Configuration;
-              var serviceName = "OtelDemo";
+              var serviceName = "CuataDemo";
               var serviceVersion = "1.0.0";
 
               services.AddOpenTelemetryTelemetry(configuration, serviceName, serviceVersion);
@@ -36,7 +36,7 @@ class Program
               services.AddTransient<BrowserAgent>();
 
               services.AddSingleton<ModuleFactory>();
-              services.AddSingleton<PresenceState>();
+              services.AddSingleton<CuataState>();
               services.AddSingleton<CuataApp>();
               services.AddSingleton<OcrProcessorService>();
               services.AddSingleton<SpeechRecognizer>(serviceProvider =>
@@ -47,6 +47,16 @@ class Program
 
                  var speechConfig = SpeechConfig.FromSubscription(speechKey, speechRegion);
                  return new SpeechRecognizer(speechConfig);
+              });
+
+              services.AddSingleton<SpeechSynthesizer>(services =>
+              {
+                 var config = services.GetRequiredService<IConfiguration>();
+                 var speechKey = config["CognitiveServicesSpeechKey"];
+                 var speechRegion = config["CognitiveServicesSpeechRegion"];
+
+                 var speechConfig = SpeechConfig.FromSubscription(speechKey, speechRegion);
+                 return new SpeechSynthesizer(speechConfig);
               });
 
               services.AddHostedService<ServiceBusReceiverService>();

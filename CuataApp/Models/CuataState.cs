@@ -1,7 +1,7 @@
-﻿public class PresenceState
+﻿public class CuataState
 {
-   private static readonly Lazy<PresenceState> _instance = new(() => new PresenceState());
-   public static PresenceState Instance => _instance.Value;
+   private static readonly Lazy<CuataState> _instance = new(() => new CuataState());
+   public static CuataState Instance => _instance.Value;
    public event Action<bool>? PresenceChanged;
    private bool _isPresent;
 
@@ -24,5 +24,5 @@
       PresenceChanged?.Invoke(_isPresent);
    }
 
-   private PresenceState() { }
+   private CuataState() { }
 }

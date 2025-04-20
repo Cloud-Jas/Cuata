@@ -56,7 +56,7 @@ public class ServiceBusReceiverService : BackgroundService
       Console.WriteLine($"👀 Presence Status Received: {presence}");
       await args.CompleteMessageAsync(args.Message);
       bool isPresent = presence!.Equals("present", StringComparison.OrdinalIgnoreCase);
-      PresenceState.Instance.IsPresent = isPresent;
+      CuataState.Instance.IsPresent = isPresent;
       await Task.CompletedTask;
    }
 

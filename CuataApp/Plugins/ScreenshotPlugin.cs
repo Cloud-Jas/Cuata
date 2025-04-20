@@ -44,7 +44,7 @@ public class ScreenshotPlugin
 
       var items = new ChatMessageContentItemCollection
     {
-        new TextContent($"I just performed the following action: \"{action}\". Does the screenshot show that this action was completed successfully? Don't check with the credibility of the site/content.Answer with 'Yes' or 'No' and explain."),
+        new TextContent($"I just performed the following action: \"{action}\". If the action is to search for something, see if it is done. Answer with 'Yes' or 'No' and explain."),
         new ImageContent(imageData, "image/png")
     };
 
@@ -52,7 +52,7 @@ public class ScreenshotPlugin
       history.AddUserMessage(items);
 
       Console.ForegroundColor = ConsoleColor.Cyan;
-      Console.WriteLine("📸 Verifying action...");
+      Console.WriteLine($"📸 Verifying action {action}...");
       Console.ResetColor();
 
       var result = await chatService.GetChatMessageContentsAsync(history);

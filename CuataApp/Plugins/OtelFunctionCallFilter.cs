@@ -18,7 +18,7 @@ namespace Cuata.Plugins
       public OtelFunctionCallFilter(IServiceProvider serviceProvider)
       {
          _itemsCache = serviceProvider.GetRequiredService<TracingContextCache>();
-         _tracer = serviceProvider.GetRequiredService<TracerProvider>().GetTracer("OtelDemo");
+         _tracer = serviceProvider.GetRequiredService<TracerProvider>().GetTracer("CuataDemo");
       }
       private DateTime invocationStartTime { get; set; }
       private DateTime invocationCompletionTime { get; set; }

@@ -48,12 +48,7 @@ namespace Cuata.Modules
          if (string.IsNullOrWhiteSpace(meetingTitle))
             meetingTitle = "Cuata demo";
 
-         bool userPresent = PresenceState.Instance.IsPresent;
-
-         PresenceState.Instance.PresenceChanged += isPresent =>
-         {
-            Console.WriteLine("Presence callback: " + isPresent);
-         };
+         bool userPresent = CuataState.Instance.IsPresent;
 
          AppContext.SetSwitch("Microsoft.SemanticKernel.Experimental.GenAI.EnableOTelDiagnosticsSensitive", _isAutomaticTelemetryEnabled);
 
@@ -152,11 +147,10 @@ namespace Cuata.Modules
             21. Once the meeting is over, search for "Leave" button and click on it.
             22. Take a screenshot of the screen and verify if you are out of the meeting.
             23. Once you are out of the meeting, share the notes with the user.
-            
 
             """);
 
-         chatHistory.AddUserMessage($"User is not present and {meetingTitle} is about to happen");
+         chatHistory.AddUserMessage($"User present status: {userPresent} and the meeting: {meetingTitle} is about to happen");
          var chatService = _kernel.GetRequiredService<IChatCompletionService>();
 
          OpenAIPromptExecutionSettings settings = new OpenAIPromptExecutionSettings();

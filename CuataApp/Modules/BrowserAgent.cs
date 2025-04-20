@@ -26,6 +26,9 @@ namespace Cuata.Modules
       private readonly bool _isAutomaticTelemetryEnabled;
       private readonly IServiceProvider _serviceProvider;
       private readonly SpeechRecognizer _recognizer;
+      private readonly SpeechSynthesizer _synthesizer;
+      private CancellationTokenSource _speechCts;
+
 
       public BrowserAgent(
           TracingContextCache itemsCache,
@@ -35,7 +38,8 @@ namespace Cuata.Modules
           IConfiguration configuration,
           ITelemetryToggleService telemetryToggleService,
           IServiceProvider serviceProvider,
-          SpeechRecognizer speechRecognizer)
+          SpeechRecognizer speechRecognizer,
+          SpeechSynthesizer speechSynthesizer)
       {
          _itemsCache = itemsCache;
          _kernelService = kernelService;
@@ -45,230 +49,25 @@ namespace Cuata.Modules
          _isAutomaticTelemetryEnabled = telemetryToggleService.IsEnabled;
          _serviceProvider = serviceProvider;
          _recognizer = speechRecognizer;
+         _synthesizer = speechSynthesizer;
+         _speechCts = new CancellationTokenSource();
       }
-
-      public async Task ExecutePlannedActionsAsync(string userGoal)
+      private async Task SpeakAsync(string text)
       {
+         if (_speechCts != null && !_speechCts.IsCancellationRequested)
+            _speechCts.Cancel();
 
-         var actions = await GetActionStepsAsync(userGoal);
+         _speechCts = new CancellationTokenSource();
+         var ct = _speechCts.Token;
 
-         if(_kernel.Plugins.Count > 0)
+         using var result = await _synthesizer.SpeakTextAsync(text);
+
+         if (ct.IsCancellationRequested)
          {
-            _kernel.Plugins.Clear();
-         }
-
-         _kernel.ImportPluginFromObject(new TimePlugin(), "TimePlugin");
-         _kernel.ImportPluginFromObject(new KeyboardPlugin(), "KeyboardPlugin");
-         _kernel.ImportPluginFromObject(new MousePlugin(), "MousePlugin");
-         _kernel.ImportPluginFromObject(new ChromePlugin(), "ChromePlugin");
-         _kernel.ImportPluginFromObject(new ScreenshotPlugin(_kernel), "ScreenshotPlugin");
-         _kernel.ImportPluginFromObject(new LocatePlugin(_kernel, _serviceProvider), "LocatePlugin");
-         _kernel.ImportPluginFromObject(new SummarizePlugin(_kernel), "SummarizePlugin");
-         _kernel.ImportPluginFromObject(new WordPlugin(), "WordPlugin");
-
-
-         for (int i = 0; i < actions.Count; i++)
-         {
-            string currentStep = actions[i];
-            var request = new RequestData
-            {
-               ChatHistory = new List<string>(),
-               Mode = "FunctionCall"
-            };
-
-            var chatHistory = new ChatHistory();
-
-            chatHistory.AddSystemMessage(
-               """
-            You are a powerful desktop automation assistant capable of observing the screen visually, reasoning about UI elements, and performing system-level actions on behalf of the user.
-
-            You work like a human: you see the screen, think, and interact using the mouse and keyboard. You must always reason based on the screenshot and available context.
-
-            You have access to the following plugins:
-
-            ---
-
-            Word Plugin — `WordPlugin`:
-            - `OpenWord()`: Opens Microsoft Word.
-            - `WriteWord(summary)`: Types the summary into the Word document.
-
-            Summarize Plugin — `SummarizePlugin`:
-           
-            - `SummarizePage(isFullScreen)`: Summarizes the content of the current screen based on the screenshots.
-
-            Chrome Plugin — `ChromePlugin`:
-            - `OpenUrl("https://www.google.com")`: Opens a webpage in the default browser.
-
-            🖼️ Locate In Screenshot Actions — `LocatePlugin`:
-
-            - `LocateElementInScreenshot("search text")`: Locates the specified text in the screenshot and returns the coordinates of the UI element in the format X,Y.
-
-            📸 Screenshot Actions — `ScreenshotPlugin`:
-
-            - `TakeScreenshotAndVerify`: Takes a screenshot and verifies if the action was successful.
-
-            🖱️ Mouse Actions — `MousePlugin`:
-
-            - `MoveMouse(x, y)`: Moves the mouse to the specified screen coordinates.
-            - `LeftClick()`: Performs a left mouse click.
-            - `RightClick()`: Performs a right-click.
-            - `Scroll(amount)`: Scrolls the screen by a specified amount (positive or negative).
-
-            ---
-
-            ⌨️ Keyboard Actions — `KeyboardPlugin`:
-
-            - `TypeText("some text")`: Types text into the currently focused input field.
-            - `PressKey("Enter")`: Presses the Enter key.
-            - `PressKey("Tab")`: Navigates to the next field.
-            - `PressKey("Ctrl+C")`, `PressKey("Ctrl+V")`: Supports common shortcuts.
-            - Use `KeyboardShortcut("Ctrl+Shift+T")` for complex combinations.
-
-            ---
-
-            🌐 Browser Automation — `ChromePlugin`:
-
-            - `OpenUrl("https://www.google.com")`: Opens a webpage in the default browser.
-            - `CloseTab()`: Closes the current browser tab.
-            - `RefreshPage()`: Refreshes the page.
-            - Always wait or verify page load before interacting.
-
-            ---
-
-            🧠 Reasoning Strategy:
-
-            1. Act like a human: observe the screen, think, and act.
-            2. Use screenshots to verify actions and analyze UI elements.
-            3. Use plugins to perform actions based on observations.
-            4. Always reason based on the current screen and context.
-            5. If you are not sure about the next action, ask for clarification.
-
-            ---
-
-            🔍 Example Tasks:
-
-            Here a helpful example:
-
-            Example 1: Searches for Stock Market news 
-
-            - Take a screenshot of the current screen to see if we are already on the right page, if yes just proceed to next step
-            - If not, open Google Chrome
-            - Don't locate to type text in the google search box, just type the text in the search box
-            - Type "Stock Market news" in the search box and press enter
-            - Take a screenshot of the page to verify if we done the previous action correctly
-                 
-            Example 2: Search for Elon Musk and find his Wikipedia page
-            
-            - Take a screenshot of the current screen to see if we are already on the right page, if yes just proceed to next step
-            - If not, open Google Chrome
-            - Don't locate to type text in the google search box, just type the text in the search box
-            - Type "Elon Musk" in the search box and press enter
-            - Take a screenshot of the page to verify if we done the previous action correctly
-            - Scroll through the articles and find if there is a Wikipedia page for Elon Musk and click on it
-            - Locate the Wikipedia page and click on it
-            - If not found scroll through the articles and find if there is a Wikipedia page for Elon Musk and click on it
-            - Take a screenshot of the page to verify if we done the previous action correctly
-
-            Example 3: Search for Motherson Sumi and find any article related to it
-            - Take a screenshot of the current screen to see if we are already on the right page, if yes just proceed to next step
-            - If not, open Google Chrome
-            - Don't locate to type text in the google search box, just type the text in the search box
-            - Type "Motherson Sumi" in the search box and press enter
-            - Take a screenshot of the page to verify if we done the previous action correctly
-            - Locate the articles related to Motherson Sumi and click on it
-            - Scroll through the articles and find if there are any articles related to Motherson Sumi
-            - Take a screenshot of the page to verify if we done the previous action correctly
-
-            Example 4: Get the summary of the current screen
-            
-            - Make sure to scroll through the entire page till you reach end
-            - Takes a screenshot of the page till the end of the page
-            - Get the summary of the current screen based on all the image paths of the screenshots
-            - Take a screenshot of the page to verify if we done the previous action correctly
-
-            Example 5: Send a summary email to someone
-
-            - Make sure to scroll through the entire page till you reach end or atleast 2 sections
-            - Takes a screenshot of the page till the end of the page
-            - Get the summary of the current screen based on all the image paths of the screenshots
-            - Send an email to someone with the summary of the current screen
-
-            Example 6: Open Microsoft Word and type a summary of the current screen
-
-            - Get the summary of the current screen/page
-            - Open Microsoft Word
-            - Locate the text 'blank document' and click on it, to open a new document
-            - Now update the Word document with the summary response
-            - Take a screenshot of the page to verify if we done the previous action correctly
-
-            ---
-
-            🎯 Your objective is to behave like a visual agent who *sees*, *thinks*, and *acts*. Be deliberate. Use screenshots to observe, and plugins to interact. Always act based on what’s visible on the screen.
-
-            """
-               );
-
-            if (i >= 1)
-               chatHistory.AddUserMessage($"Previous goal: {actions[i - 1]}");
-
-            var chatService = _kernel.GetRequiredService<IChatCompletionService>();
-            chatHistory.AddUserMessage(currentStep);
-            request.ChatHistory.Add($"User: {currentStep}");
-            OpenAIPromptExecutionSettings settings = new OpenAIPromptExecutionSettings();
-
-            settings = new()
-            {
-               ToolCallBehavior = ToolCallBehavior.AutoInvokeKernelFunctions,
-               TopP = 1,
-               Temperature = 0.7
-            };
-            try
-            {
-               ChatMessageContent response;
-
-               if (!_isAutomaticTelemetryEnabled)
-               {
-                  _kernel.FunctionInvocationFilters.Add(new OtelFunctionCallFilter(_serviceProvider));
-
-                  response = await _otelTracingHandler.TraceRequest(
-                      async (_) =>
-                      {
-                         var reply = await chatService.GetChatMessageContentAsync(chatHistory, settings, _kernel);
-                         return reply;
-                      },
-                      request
-                  );
-               }
-               else
-               {
-                  response = await chatService.GetChatMessageContentAsync(chatHistory, settings, _kernel);
-               }
-
-               if (response is ChatMessageContent chatMessage)
-               {
-                  chatHistory.AddAssistantMessage(chatMessage.Content!);
-                  request.ChatHistory.Add($"Assistant: {chatMessage.Content}");
-                  request.AssistantMessage = chatMessage.Content;
-
-                  Console.ForegroundColor = ConsoleColor.Green;
-                  Console.WriteLine($"\n🤖 AI: {chatMessage.Content}\n");
-                  Console.ResetColor();
-               }
-               else
-               {
-                  Console.ForegroundColor = ConsoleColor.Red;
-                  Console.WriteLine("❌ No valid response.");
-                  Console.ResetColor();
-               }
-            }
-            catch (Exception ex)
-            {
-               Console.ForegroundColor = ConsoleColor.Red;
-               Console.WriteLine($"❌ Error: {ex.Message}");
-               Console.ResetColor();
-            }
+            Console.WriteLine("Speech was interrupted.");
          }
       }
+
 
       public async Task RunApp(string? defaultParam)
       {
@@ -291,18 +90,160 @@ namespace Cuata.Modules
          Console.WriteLine("🎧 Starting continuous recognition...\n");
          await _recognizer.StartContinuousRecognitionAsync();
 
+         var chatHistory = new ChatHistory();
+
+         chatHistory.AddSystemMessage(
+            """
+            You are a powerful desktop automation assistant capable of observing the screen visually, reasoning about UI elements, and performing system-level actions on behalf of the user.
+
+            You work like a human: you see the screen, think, and interact using the mouse and keyboard. You must always reason based on the screenshot and available context.
+
+            Make sure not to type directly with the text if you are already in the search result page. Locate the text in the search result page and click on it. If you are not sure about the next action, ask for clarification.
+
+            🧠 Reasoning Strategy:
+
+            1. Act like a human: observe the screen, think, and act.
+            2. Use screenshots to verify actions and analyze UI elements.
+            3. Use plugins to perform actions based on observations.
+            4. Always reason based on the current screen and context.
+            5. If you are not sure about the next action, ask for clarification.
+
+            ---
+
+            Thought Process:
+
+            Split the user goal into multiple steps, each with a verification step. Use screenshots to verify actions and analyze UI elements. Always reason based on the current screen and context.
+            
+            Example 1: Can you search for live mint related articles in this?
+            [
+                {`"Verify if you are already at the search result page"`},
+                {`"If not, open Google Chrome"`},
+                {`"Don't locate to type text in the google search box, just type the article to be found along with livemint in the search box"`},
+                {`"search for "live mint" in the page using locate plugin and click on it"`},
+                {`"Take a screenshot of the page to verify if we done the previous action correctly"`},
+                {`"scroll through the articles and find if there are any articles related to live mint"` },
+            ]
+
+            Example 2: Searches for Stock Market news and find any article related to Motherson Sumi
+            [
+                {`"open Google Chrome to search for stock market news and type "Stock Market news" in the search box and press enter"`},
+                {`"scroll through the articles and find if there are any articles related to Motherson sumi"` }
+            ]
+            
+            Example 3: Search for Elon Musk and find his Wikipedia page
+            [
+                {`"open Google Chrome to search for "Elon Musk" and type "Elon Musk" in the search box and press enter"`},
+                {`"scroll through the articles and find if there is a Wikipedia page for Elon Musk and click on it"` }
+            ]
+            
+            Example 4: Summarize the content of the current page/screen
+            [
+                {`"Summarize the content of the current page/screen"` }
+            ]
+            
+            Example 5: Summarize the content of the current page/screen and send an email to someone
+            [
+                {`"Summarize the content of the current page/screen"` },
+                {`"Send an email to someone with the summary of the current screen"` }
+            ]
+            
+            Example 6: Open Microsoft Word and type a summary of the current screen
+            [
+                { `"Open Microsoft Word and type a summary of the current screen"` }
+            ]
+
+            ---
+
+            Execution process after thought process:
+
+            🔍 Example Tasks:
+
+            Here a helpful example:
+
+            Example 1: Searches for Stock Market news 
+
+            - Open Google Chrome
+            - Don't locate to type text in the google search box, just type the text in the search box
+            - Type "Stock Market news" in the search box and press enter
+            - Take a screenshot of the page to verify if we done the previous action correctly
+                 
+            Example 2: Search for Elon Musk and find his Wikipedia page
+            
+            - Open Google Chrome
+            - Don't locate to type text in the google search box, just type the text in the search box
+            - Type "Elon Musk" in the search box and press enter
+            - Take a screenshot of the page to verify if we done the previous action correctly
+            - Scroll through the articles and find if there is a Wikipedia page for Elon Musk and click on it
+            - Locate the Wikipedia page and click on it
+            - If not found scroll through the articles and find if there is a Wikipedia page for Elon Musk and click on it
+            - Take a screenshot of the page to verify if we done the previous action correctly
+
+            Example 3: Search for Motherson Sumi and find any article related to it
+           
+            - Open Google Chrome
+            - Don't locate to type text in the google search box, just type the text in the search box
+            - Type "Motherson Sumi" in the search box and press enter
+            - Take a screenshot of the page to verify if we done the previous action correctly
+            - Locate the articles related to Motherson Sumi and click on it
+            - Scroll through the articles and find if there are any articles related to Motherson Sumi
+            - Take a screenshot of the page to verify if we done the previous action correctly
+
+            Example 4: Get the summary of the current screen
+            
+            - Use summarize plugin to capture the current screen
+            - Get the summary of the current screen based on all the image paths of the screenshots
+            - Take a screenshot of the page to verify if we done the previous action correctly
+
+            Example 5: Send a summary email to someone
+
+            - Make sure to scroll through the entire page till you reach end or atleast 2 sections
+            - Takes a screenshot of the page till the end of the page
+            - Get the summary of the current screen based on all the image paths of the screenshots
+            - Send an email to someone with the summary of the current screen
+
+            Example 6: Open Microsoft Word and type a summary of the current screen
+
+            - Use summarize plugin to capture the current screen
+            - Open Microsoft Word
+            - Verify if the Word document is open
+            - Locate the text 'blank document' and click on it, to open a new document
+            - Now update the Word document with the summary response
+            - Take a screenshot of the page to verify if we done the previous action correctly
+
+            Example 7: Can you look for any articles from livemint
+
+            - Verify if you are already at the search result page
+            - If not, open Google Chrome
+            - Don't locate to type text in the google search box, just type the text in the search box
+            - Look for livemint in the search result page
+            - If not found, scroll through the articles and find if there are any articles related to livemint and click on it
+            - Take a screenshot of the page to verify if we done the previous action correctly
+
+
+            ---
+
+            🎯 Your objective is to behave like a visual agent who *sees*, *thinks*, and *acts*. Be deliberate. 
+            Use screenshots to verify and Locate plugin to see the elements in the screen and take actions based on it.
+            Always act based on what’s visible on the screen. Use Locate plugin to see what user is asking.
+
+            """
+            );
+
          _recognizer.Recognized += async (s, e) =>
          {
             if (e.Result.Reason == ResultReason.RecognizedSpeech)
             {
+               if (_speechCts != null && !_speechCts.IsCancellationRequested)
+                  _speechCts.Cancel();
+
                string input = e.Result.Text.Trim();
                Console.ForegroundColor = ConsoleColor.Yellow;
                Console.WriteLine($"✔ Final recognized: {input}");
                Console.ResetColor();
-               
+
                if (string.IsNullOrWhiteSpace(input)) return;
 
-               if (input.Equals("quit", StringComparison.OrdinalIgnoreCase)|| input.Equals("quit.", StringComparison.OrdinalIgnoreCase))
+               if (input.Equals("quit", StringComparison.OrdinalIgnoreCase) || input.Equals("quit.", StringComparison.OrdinalIgnoreCase))
                {
                   Console.ForegroundColor = ConsoleColor.Red;
                   Console.WriteLine("🛑 Stopping recognition...");
@@ -311,7 +252,85 @@ namespace Cuata.Modules
                }
                else
                {
-                  await ExecutePlannedActionsAsync(input);
+                  if (_kernel.Plugins.Count > 0)
+                  {
+                     _kernel.Plugins.Clear();
+                  }
+
+                  _kernel.ImportPluginFromObject(new TimePlugin(), "TimePlugin");
+                  _kernel.ImportPluginFromObject(new KeyboardPlugin(), "KeyboardPlugin");
+                  _kernel.ImportPluginFromObject(new MousePlugin(), "MousePlugin");
+                  _kernel.ImportPluginFromObject(new ChromePlugin(), "ChromePlugin");
+                  _kernel.ImportPluginFromObject(new ScreenshotPlugin(_kernel), "ScreenshotPlugin");
+                  _kernel.ImportPluginFromObject(new LocatePlugin(_kernel, _serviceProvider), "LocatePlugin");
+                  _kernel.ImportPluginFromObject(new SummarizePlugin(_kernel), "SummarizePlugin");
+                  _kernel.ImportPluginFromObject(new WordPlugin(), "WordPlugin");
+
+                  var request = new RequestData
+                  {
+                     ChatHistory = new List<string>(),
+                     Mode = "FunctionCall"
+                  };
+
+                  var chatService = _kernel.GetRequiredService<IChatCompletionService>();
+
+                  chatHistory.AddUserMessage(input);
+
+                  OpenAIPromptExecutionSettings settings = new OpenAIPromptExecutionSettings();
+
+                  settings = new()
+                  {
+                     ToolCallBehavior = ToolCallBehavior.AutoInvokeKernelFunctions,
+                     TopP = 1,
+                     Temperature = 0.7
+                  };
+                  try
+                  {
+                     ChatMessageContent response;
+
+                     if (!_isAutomaticTelemetryEnabled)
+                     {
+                        //_kernel.FunctionInvocationFilters.Add(new OtelFunctionCallFilter(_serviceProvider));
+
+                        response = await _otelTracingHandler.TraceRequest(
+                            async (_) =>
+                            {
+                               var reply = await chatService.GetChatMessageContentAsync(chatHistory, settings, _kernel);
+                               return reply;
+                            },
+                            request
+                        );
+                     }
+                     else
+                     {
+                        response = await chatService.GetChatMessageContentAsync(chatHistory, settings, _kernel);
+                     }
+
+                     if (response is ChatMessageContent chatMessage)
+                     {
+                        chatHistory.AddAssistantMessage(chatMessage.Content!);
+                        request.ChatHistory.Add($"Assistant: {chatMessage.Content}");
+                        request.AssistantMessage = chatMessage.Content;
+
+                        Console.ForegroundColor = ConsoleColor.Green;
+                        Console.WriteLine($"\n🤖 AI: {chatMessage.Content}\n");
+                        Console.ResetColor();
+                        await SpeakAsync(chatMessage.Content!);
+
+                     }
+                     else
+                     {
+                        Console.ForegroundColor = ConsoleColor.Red;
+                        Console.WriteLine("❌ No valid response.");
+                        Console.ResetColor();
+                     }
+                  }
+                  catch (Exception ex)
+                  {
+                     Console.ForegroundColor = ConsoleColor.Red;
+                     Console.WriteLine($"❌ Error: {ex.Message}");
+                     Console.ResetColor();
+                  }
                }
             }
          };
@@ -333,7 +352,6 @@ namespace Cuata.Modules
          await Task.Delay(Timeout.Infinite);
 
       }
-
       public async Task<List<string>> GetActionStepsAsync(string userGoal)
       {
          var chatService = _kernel.GetRequiredService<IChatCompletionService>();
@@ -350,34 +368,6 @@ namespace Cuata.Modules
             🔍 Example Tasks:
             
             Here a helpful example:
-            
-            Example 1: Searches for Stock Market news and find any article related to Motherson Sumi
-            [
-                {`"open Google Chrome to search for stock market news and type "Stock Market news" in the search box and press enter"`},
-                {`"scroll through the articles and find if there are any articles related to Motherson sumi"` }
-            ]
-            
-            Example 2: Search for Elon Musk and find his Wikipedia page
-            [
-                {`"open Google Chrome to search for "Elon Musk" and type "Elon Musk" in the search box and press enter"`},
-                {`"scroll through the articles and find if there is a Wikipedia page for Elon Musk and click on it"` }
-            ]
-
-            Example 3: Summarize the content of the current page/screen
-            [
-                {`"Summarize the content of the current page/screen` }
-            ]
-
-            Example 4: Summarize the content of the current page/screen and send an email to someone
-            [
-                {`"Summarize the content of the current page/screen` },
-                {`"Send an email to someone with the summary of the current screen"` }
-            ]
-
-            Example 5: Open Microsoft Word and type a summary of the current screen
-            [
-                { `"Open Microsoft Word and type a summary of the current screen"` }
-            ]
 
             Always return:
             - an array of string/s (if multiple steps with verification are needed).
@@ -400,6 +390,9 @@ namespace Cuata.Modules
          var planResponse = await chatService.GetChatMessageContentAsync(planHistory, settings, _kernel);
 
          var rawText = planResponse.Content;
+
+         Console.WriteLine($"🤖 AI: {rawText}");
+
          var parsed = JsonSerializer.Deserialize<List<string>>(rawText ?? "[]");
 
          if (parsed == null || parsed.Count == 0)
@@ -426,6 +419,5 @@ namespace Cuata.Modules
 
          return parsed ?? new List<string>();
       }
-
    }
 }
