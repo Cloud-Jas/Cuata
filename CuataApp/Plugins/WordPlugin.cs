@@ -32,16 +32,15 @@ namespace Cuata.Plugins
       }
 
       [KernelFunction, Description("Open Microsoft Word with a new document.")]
-      public async Task<string> OpenWord()
+      public string OpenWord()
       {
          try
          {
             string wordPath = GetMicrosoftWordPath();
             Process.Start(wordPath);
             Console.ForegroundColor = ConsoleColor.Green;
-            Console.WriteLine("📄 Microsoft Word opened successfully."); 
+            Console.WriteLine("📄 Microsoft Word opened successfully.");
             Console.ResetColor();
-            await Task.Delay(2000);
             return "Opened Microsoft Word.";
          }
          catch (Exception ex)
@@ -54,15 +53,14 @@ namespace Cuata.Plugins
       }
 
       [KernelFunction, Description("Writes summary of the page into Word document")]
-      public async Task<string> WriteWord([Description("Sumamry of the page")]string summary)
+      public void WriteWord([Description("Sumamry of the page")] string summary)
       {
-         await Task.Delay(2000);
+         Thread.Sleep(3500);
          _input.Keyboard.TextEntry(summary);
          _input.Keyboard.KeyPress(VirtualKeyCode.RETURN);
          Console.ForegroundColor = ConsoleColor.Cyan;
          Console.WriteLine($"📝 Wrote summary into Word document. {summary}");
          Console.ResetColor();
-         return "Wrote summary into Word document.";
       }
 
    }

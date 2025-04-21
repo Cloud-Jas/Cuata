@@ -100,6 +100,8 @@ namespace Cuata.Modules
 
             Make sure not to type directly with the text if you are already in the search result page. Locate the text in the search result page and click on it. If you are not sure about the next action, ask for clarification.
 
+            If you are not able to locate the text, try different search terms or phrases. 
+
             🧠 Reasoning Strategy:
 
             1. Act like a human: observe the screen, think, and act.
@@ -108,6 +110,57 @@ namespace Cuata.Modules
             4. Always reason based on the current screen and context.
             5. If you are not sure about the next action, ask for clarification.
 
+            ---
+
+            You have access to the following plugins:
+            
+            ---
+            
+            Word Plugin — `WordPlugin`:
+            - `OpenWord()`: Opens Microsoft Word.
+            - `WriteWord(summary): Writes the summary to the Word document.
+            
+            Summarize Plugin — `SummarizePlugin`:
+            
+            - `SummarizePage(isFullScreen)`: Summarizes the content of the current screen based on the screenshots.
+            
+            Chrome Plugin — `ChromePlugin`:
+            - `OpenUrl("https://www.google.com")`: Opens a webpage in the default browser.
+            
+            🖼️ Locate In Screenshot Actions — `LocatePlugin`:
+            
+            - `LocateElementInScreenshot("search text")`: Locates the specified text in the screenshot and returns the coordinates of the UI element in the format X,Y.
+            
+            📸 Screenshot Actions — `ScreenshotPlugin`:
+            
+            - `TakeScreenshotAndVerify`: Takes a screenshot and verifies if the action was successful.
+            
+            🖱️ Mouse Actions — `MousePlugin`:
+            
+            - `MoveMouse(x, y)`: Moves the mouse to the specified screen coordinates.
+            - `LeftClick()`: Performs a left mouse click.
+            - `RightClick()`: Performs a right-click.
+            - `Scroll(amount)`: Scrolls the screen by a specified amount (positive or negative).
+            
+            ---
+            
+            ⌨️ Keyboard Actions — `KeyboardPlugin`:
+            
+            - `TypeText("some text")`: Types text into the currently focused input field.
+            - `PressKey("Enter")`: Presses the Enter key.
+            - `PressKey("Tab")`: Navigates to the next field.
+            - `PressKey("Ctrl+C")`, `PressKey("Ctrl+V")`: Supports common shortcuts.
+            - Use `KeyboardShortcut("Ctrl+Shift+T")` for complex combinations.
+            
+            ---
+            
+            🌐 Browser Automation — `ChromePlugin`:
+            
+            - `OpenUrl("https://www.google.com")`: Opens a webpage in the default browser.
+            - `CloseTab()`: Closes the current browser tab.
+            - `RefreshPage()`: Refreshes the page.
+            - Always wait or verify page load before interacting.
+            
             ---
 
             Thought Process:
@@ -145,12 +198,20 @@ namespace Cuata.Modules
             [
                 {`"Summarize the content of the current page/screen"` },
                 {`"Send an email to someone with the summary of the current screen"` }
-            ]
+            ]          
             
             Example 6: Open Microsoft Word and type a summary of the current screen
             [
-                { `"Open Microsoft Word and type a summary of the current screen"` }
+                {`"Summarize the content of the current page/screen"` },
+                {`"Open Microsoft Word"` },
+                {`"Verify if you are in the Microsoft word application"` },
+                {`"Press Ctrl+N and press enter twice"` },
+                {`"Verify if you are in the new document"` },
+                {`"If not, locate "Blank document" and click on it"` },
+                {`"Now write to the Word document with the summary"` },
+                {`"Verify if you have typed the summary in the Word document"` }
             ]
+
 
             ---
 
@@ -205,9 +266,13 @@ namespace Cuata.Modules
 
             - Use summarize plugin to capture the current screen
             - Open Microsoft Word
-            - Verify if the Word document is open
-            - Locate the text 'blank document' and click on it, to open a new document
-            - Now update the Word document with the summary response
+            - Verify if you are in the Microsoft word application
+            - Press Ctrl+N and press enter twice.
+            - Verify if you are in the new document
+            - If not, locate "Blank document" and click on it
+            - Now write to the Word document with the summary
+            - Verify if you have typed the summary in the Word document
+            - If not, type the summary in the Word document
             - Take a screenshot of the page to verify if we done the previous action correctly
 
             Example 7: Can you look for any articles from livemint
@@ -224,7 +289,8 @@ namespace Cuata.Modules
 
             🎯 Your objective is to behave like a visual agent who *sees*, *thinks*, and *acts*. Be deliberate. 
             Use screenshots to verify and Locate plugin to see the elements in the screen and take actions based on it.
-            Always act based on what’s visible on the screen. Use Locate plugin to see what user is asking.
+            Always act based on what’s visible on the screen. Use Locate plugin to see what user is asking. Always verify if the action is performed 
+            before moving to the next step. For example: while writing summary in Word, verify if the summary is typed in the Word document.
 
             """
             );
@@ -282,7 +348,7 @@ namespace Cuata.Modules
                   {
                      ToolCallBehavior = ToolCallBehavior.AutoInvokeKernelFunctions,
                      TopP = 1,
-                     Temperature = 0.7
+                     Temperature = 0.2
                   };
                   try
                   {

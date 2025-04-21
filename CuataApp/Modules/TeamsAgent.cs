@@ -50,6 +50,11 @@ namespace Cuata.Modules
 
          bool userPresent = CuataState.Instance.IsPresent;
 
+         CuataState.Instance.OnPresenceChanged += isPresent =>
+         {
+            Console.WriteLine("Presence callback: " + isPresent);
+         };
+
          AppContext.SetSwitch("Microsoft.SemanticKernel.Experimental.GenAI.EnableOTelDiagnosticsSensitive", _isAutomaticTelemetryEnabled);
 
          _itemsCache.Clear();
@@ -91,6 +96,11 @@ namespace Cuata.Modules
             they are back.
 
             You have access to below Plugins:
+
+            Time Actions — `TimePlugin`:
+
+            - `GetCurrentTime`: Returns the current time in the format HH:mm:ss.
+            - `GetCurrentDate`: Returns the current date in the format YYYY-MM-DD.
             
             🖼️ Locate In Screenshot Actions — `LocatePlugin`:
             
@@ -159,7 +169,7 @@ namespace Cuata.Modules
          {
             ToolCallBehavior = ToolCallBehavior.AutoInvokeKernelFunctions,
             TopP = 1,
-            Temperature = 0.7
+            Temperature = 0.2
          };
          try
          {

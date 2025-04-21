@@ -37,7 +37,26 @@ namespace Cuata
             DisplayMenu(options, selectedIndex);
 
             key = Console.ReadKey(true).Key;
+            
+            CuataState.Instance.OnConsolidatedSummaryChanged += summary =>
+            {
+               if(summary == null) return;
 
+               Console.WriteLine($"📩 Meeting Consolidation Received:\n{summary.FinalSummary}");
+
+               if (summary.ImportantImageUrls != null && summary.ImportantImageUrls.Any())
+               {
+                  Console.WriteLine("📸 Important Images:");
+                  foreach (var url in summary.ImportantImageUrls)
+                  {
+                     Console.WriteLine($" - {url}");
+                  }
+               }
+               else
+               {
+                  Console.WriteLine("ℹ️ No important images included.");
+               }
+            };
             switch (key)
             {
                case ConsoleKey.UpArrow:

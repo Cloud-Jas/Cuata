@@ -44,7 +44,7 @@ public class ScreenshotPlugin
 
       var items = new ChatMessageContentItemCollection
     {
-        new TextContent($"I just performed the following action: \"{action}\". If the action is to search for something, see if it is done. Answer with 'Yes' or 'No' and explain."),
+        new TextContent($"I just performed the following action: \"{action}\". If the action is to search for something, see if it is done and if it is realted to page like Wikipedia, search if you are at the right page by checking address bar with 'wikipedia.org'. Answer with 'Yes' or 'No' and explain."),
         new ImageContent(imageData, "image/png")
     };
 

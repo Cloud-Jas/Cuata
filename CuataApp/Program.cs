@@ -9,6 +9,7 @@ using System.Text;
 using Cuata.Services;
 using System.Reflection.Metadata.Ecma335;
 using Microsoft.CognitiveServices.Speech;
+using Cuata.Handlers;
 
 class Program
 {
@@ -58,6 +59,12 @@ class Program
                  var speechConfig = SpeechConfig.FromSubscription(speechKey, speechRegion);
                  return new SpeechSynthesizer(speechConfig);
               });
+              services.AddHttpClient<ScreenshotClient>(client =>
+              {
+                 client.Timeout = TimeSpan.FromSeconds(30);
+              });
+              services.AddSingleton<ScreenshotService>();
+              services.AddSingleton<StateFlowHandler>();
 
               services.AddHostedService<ServiceBusReceiverService>();
            })

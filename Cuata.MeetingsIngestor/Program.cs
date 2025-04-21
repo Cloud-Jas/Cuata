@@ -7,6 +7,10 @@ using Microsoft.Azure.Functions.Worker.Builder;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Graph;
+using Microsoft.SemanticKernel.ChatCompletion;
+using Microsoft.SemanticKernel.Connectors.AzureOpenAI;
+using Microsoft.SemanticKernel;
+using Microsoft.Extensions.Configuration;
 
 var builder = FunctionsApplication.CreateBuilder(args);
 
@@ -30,6 +34,13 @@ var host = new HostBuilder()
                cfg["CosmosDbContainerName"]
            ));
 
+       services.AddSingleton(s =>
+           new CosmosMeetingSummaryService(
+               s.GetRequiredService<CosmosClient>(),
+               cfg["CosmosDbDatabaseName"],
+               cfg["CosmosDbMeetingSummaryContainerName"]
+           ));
+
        services.AddSingleton(new ServiceBusClient(cfg["ServiceBusConnectionString"]));
        services.AddSingleton(s =>
            new ServiceBusPublisher(
@@ -49,6 +60,32 @@ var host = new HostBuilder()
        });
 
        services.AddSingleton<GraphService>();
+
+       var credentialOptions = new DefaultAzureCredentialOptions
+       {
+          TenantId = cfg.GetValue<string>("TenantId")
+       };
+
+       services.AddScoped<Kernel>(provider =>
+       {
+          var builder = Kernel.CreateBuilder();
+
+          builder.AddAzureOpenAIChatCompletion(deploymentName: cfg!.GetValue<string>("OpenAIChatCompletionDeploymentName")!,
+               credentials: new DefaultAzureCredential(credentialOptions),
+               endpoint: cfg!.GetValue<string>("OpenAIEndpoint")!);
+          return builder.Build();
+       });
+
+       services.AddSingleton<IChatCompletionService, AzureOpenAIChatCompletionService>(provider =>
+       {
+          return new AzureOpenAIChatCompletionService(
+               deploymentName: cfg!.GetValue<string>("OpenAIChatCompletionDeploymentName")!,
+               credentials: new DefaultAzureCredential(credentialOptions),
+               endpoint: cfg!.GetValue<string>("OpenAIEndpoint")!
+           );
+       });
+
+       services.AddSingleton<IKernelService, KernelService>();
     })
     .Build();
 

@@ -4,6 +4,7 @@ using Cuata.Modules;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using System.Text;
 using System.Text.Json;
 
 namespace Cuata.Services;
@@ -12,6 +13,7 @@ public class ServiceBusReceiverService : BackgroundService
    private readonly ServiceBusClient _client;
    private readonly ServiceBusProcessor _meetingProcessor;
    private readonly ServiceBusProcessor _presenceProcessor;
+   private readonly ServiceBusReceiver _meetingConsolidationProcessor;
    private readonly IServiceProvider _serviceProvider;
 
    public ServiceBusReceiverService(IConfiguration config, IServiceProvider serviceProvider)
@@ -31,12 +33,33 @@ public class ServiceBusReceiverService : BackgroundService
          AutoCompleteMessages = false
       });
 
+      _meetingConsolidationProcessor = _client.CreateReceiver("meetingsConsolidated", new ServiceBusReceiverOptions
+      {
+         PrefetchCount = 1,
+         ReceiveMode = ServiceBusReceiveMode.PeekLock
+      });
+
       _meetingProcessor.ProcessMessageAsync += ProcessMeetingMessage;
       _meetingProcessor.ProcessErrorAsync += ErrorHandler;
 
       _presenceProcessor.ProcessMessageAsync += ProcessPresenceMessage;
       _presenceProcessor.ProcessErrorAsync += ErrorHandler;
+
+
+      _meetingProcessor.ProcessMessageAsync += ProcessMeetingConsolidatorMessage;
+      _meetingProcessor.ProcessErrorAsync += ErrorHandler;
+
+
       _serviceProvider = serviceProvider;
+   }
+
+   private async Task ProcessMeetingConsolidatorMessage(ProcessMessageEventArgs args)
+   {
+      var message = args.Message;
+      var body = message.Body.ToString();
+      var summary = JsonSerializer.Deserialize<ConsolidatedSummaryResult>(body);
+      CuataState.Instance.ConsolidatedSummary = summary;
+      await args.CompleteMessageAsync(args.Message);
    }
 
    private async Task ProcessMeetingMessage(ProcessMessageEventArgs args)
@@ -45,6 +68,9 @@ public class ServiceBusReceiverService : BackgroundService
       var meeting = JsonSerializer.Deserialize<MeetingMessage>(body);
       Console.WriteLine($"📩 Meeting Received: {meeting.Subject} @ {meeting.StartTime}");
       await args.CompleteMessageAsync(args.Message);
+      CuataState.Instance.IsMeetingOngoing = true;
+      CuataState.Instance.MeetingTitle = meeting.Subject;
+      CuataState.Instance.MeetingId = meeting.Id;
       await _serviceProvider.GetService<TeamsAgent>()!.RunApp(meeting.Subject);
       await Task.CompletedTask;
    }
@@ -71,7 +97,7 @@ public class ServiceBusReceiverService : BackgroundService
       Console.WriteLine("🟢 Starting both Service Bus receivers...");
       await _meetingProcessor.StartProcessingAsync(stoppingToken);
       await _presenceProcessor.StartProcessingAsync(stoppingToken);
-      await Task.Delay(Timeout.Infinite, stoppingToken); // Keeps the service alive
+      await Task.Delay(Timeout.Infinite, stoppingToken);
    }
 
    public override async Task StopAsync(CancellationToken cancellationToken)

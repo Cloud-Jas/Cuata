@@ -54,19 +54,23 @@ public class OcrProcessorService
          {
             foreach (var line in page.Lines)
             {
-               var points = new List<PointF>();
-               for (int i = 0; i < line.BoundingBox.Count; i += 2)
+               foreach (var word in line.Words)
                {
-                  points.Add(new PointF((float)line.BoundingBox[i], (float)line.BoundingBox[i + 1]));
-               }
+                  var points = new List<PointF>();
+                  for (int i = 0; i < word.BoundingBox.Count; i += 2)
+                  {
+                     points.Add(new PointF((float)word.BoundingBox[i], (float)word.BoundingBox[i + 1]));
+                  }
 
-               output.Add(new TextElement
-               {
-                  Text = line.Text,
-                  BoundingBox = points
-               });
+                  output.Add(new TextElement
+                  {
+                     Text = word.Text,
+                     BoundingBox = points
+                  });
+               }
             }
          }
+
 
          return output;
       }

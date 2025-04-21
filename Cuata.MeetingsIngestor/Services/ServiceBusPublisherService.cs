@@ -18,4 +18,15 @@ public class ServiceBusPublisher
       var msg = new ServiceBusMessage(JsonSerializer.Serialize(meeting));
       await _sender.SendMessageAsync(msg);
    }
+   public async Task SendConsolidatedSummaryAsync(ConsolidatedSummaryResult summary)
+   {
+      var messageBody = JsonSerializer.Serialize(summary);
+      var message = new ServiceBusMessage(messageBody)
+      {
+         ContentType = "application/json",
+         Subject = "ConsolidatedMeetingSummary"
+      };
+
+      await _sender.SendMessageAsync(message);
+   }
 }

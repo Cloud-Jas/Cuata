@@ -29,8 +29,8 @@ namespace Cuata
          // get the size
          User32.RECT windowRect = new User32.RECT();
          User32.GetWindowRect(handle, ref windowRect);
-         int width = windowRect.right - windowRect.left;
-         int height = windowRect.bottom - windowRect.top;
+         int width = windowRect.right - windowRect.left + 800;
+         int height = windowRect.bottom - windowRect.top + 800;
          // create a device context we can copy to
          IntPtr hdcDest = GDI32.CreateCompatibleDC(hdcSrc);
          // create a bitmap we can copy it to,

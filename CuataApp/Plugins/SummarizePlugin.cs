@@ -42,26 +42,24 @@ public class SummarizePlugin
    {
       var imagePaths = new List<string>();
 
+      var image = await TakeScreenshotTillEndOfThePage();
+      imagePaths.Add(image);
+
       if (isFullScreen)
       {
-         //for (int i = 0; i < 5; i++)
-         //{
-         //   _inputSimulator.Mouse.VerticalScroll(-10);
-         //   var direction = -10 > 0 ? "up" : "down";
-         //   Console.ForegroundColor = ConsoleColor.Yellow;
-         //   Console.WriteLine($"🖱️ Scrolled the mouse {direction} by {Math.Abs(-10)} click(s)!");
-         //   Console.ResetColor();
+         for (int i = 0; i < 5; i++)
+         {
+            _inputSimulator.Mouse.VerticalScroll(-10);
+            var direction = -10 > 0 ? "up" : "down";
+            Console.ForegroundColor = ConsoleColor.Yellow;
+            Console.WriteLine($"🖱️ Scrolled the mouse {direction} by {Math.Abs(-10)} click(s)!");
+            Console.ResetColor();
+            Thread.Sleep(2500);
+            var imagePath = await TakeScreenshotTillEndOfThePage();
+            imagePaths.Add(imagePath);
+         }
+      }
 
-         //   Thread.Sleep(1500);
-         //   var imagePath = await TakeScreenshotTillEndOfThePage();
-         //   imagePaths.Add(imagePath);
-         //}
-      }
-      else
-      {
-         var imagePath = await TakeScreenshotTillEndOfThePage();
-         imagePaths.Add(imagePath);
-      }
       var chatService = _kernel.GetRequiredService<IChatCompletionService>();
 
       var chatMessage = new ChatMessageContentItemCollection
