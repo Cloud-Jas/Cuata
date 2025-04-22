@@ -44,11 +44,26 @@ public class ScreenshotPlugin
 
       var items = new ChatMessageContentItemCollection
     {
-        new TextContent($"I just performed the following action: \"{action}\". If the action is to search for something, see if it is done and if it is realted to page like Wikipedia, search if you are at the right page by checking address bar with 'wikipedia.org'. Answer with 'Yes' or 'No' and explain."),
+        new TextContent($"I just performed the following action: \"{action}\". Answer with 'Yes' or 'No' and explain."),
         new ImageContent(imageData, "image/png")
     };
 
       var history = new ChatHistory();
+
+      history.AddSystemMessage(
+         """
+         If the action involves navigating to a website or searching for a specific page, verify whether the intended destination has been reached. One way to do this is by examining the browser's address bar or page content.
+
+         For example, 
+         
+         1. If the user searched for a topic on a known website (e.g., Wikipedia, GitHub, or Stack Overflow), check if the current URL includes the expected domain name (e.g., 'wikipedia.org') or if the page content matches the query intent.
+
+         2. If you are verifying if user is inside a teams meeting, check if the screenshot contains elements like the meeting title, participants, or any other relevant information that indicates the user is indeed in a meeting.
+
+         Respond with 'Yes' or 'No' depending on whether the goal seems to be achieved, and provide a brief explanation."
+         
+         """);
+
       history.AddUserMessage(items);
 
       Console.ForegroundColor = ConsoleColor.Cyan;

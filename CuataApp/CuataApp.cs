@@ -1,6 +1,7 @@
 ﻿using Microsoft.Extensions.Logging;
 using Cuata.Modules;
 using Cuata.Services;
+using Cuata.Handlers;
 
 namespace Cuata
 {
@@ -9,12 +10,14 @@ namespace Cuata
       private readonly ILogger<CuataApp> _logger;
       private readonly ModuleFactory _moduleFactory;
       private readonly ITelemetryToggleService _telemetryToggleService;
+      private readonly StateFlowHandler _stateFlowHandler;
 
-      public CuataApp(ILogger<CuataApp> logger, ModuleFactory moduleFactory, ITelemetryToggleService telemetryToggleService)
+      public CuataApp(ILogger<CuataApp> logger, ModuleFactory moduleFactory, StateFlowHandler stateFlowHandler, ITelemetryToggleService telemetryToggleService)
       {
          _logger = logger;
          _moduleFactory = moduleFactory;
          _telemetryToggleService = telemetryToggleService;
+         _stateFlowHandler = stateFlowHandler;
       }
 
       public async Task Run()

@@ -54,23 +54,19 @@ public class OcrProcessorService
          {
             foreach (var line in page.Lines)
             {
-               foreach (var word in line.Words)
+               var points = new List<PointF>();
+               for (int i = 0; i < line.BoundingBox.Count; i += 2)
                {
-                  var points = new List<PointF>();
-                  for (int i = 0; i < word.BoundingBox.Count; i += 2)
-                  {
-                     points.Add(new PointF((float)word.BoundingBox[i], (float)word.BoundingBox[i + 1]));
-                  }
-
-                  output.Add(new TextElement
-                  {
-                     Text = word.Text,
-                     BoundingBox = points
-                  });
+                  points.Add(new PointF((float)line.BoundingBox[i], (float)line.BoundingBox[i + 1]));
                }
+
+               output.Add(new TextElement
+               {
+                  Text = line.Text,
+                  BoundingBox = points
+               });
             }
          }
-
 
          return output;
       }
@@ -129,6 +125,15 @@ public class OcrProcessorService
       }
 
       throw new Exception($"Text '{searchText}' not found in OCR results.");
+   }
+
+   private RectangleF GetBoundingRectangle(List<PointF> points)
+   {
+      float minX = points.Min(p => p.X);
+      float maxX = points.Max(p => p.X);
+      float minY = points.Min(p => p.Y);
+      float maxY = points.Max(p => p.Y);
+      return new RectangleF(minX, minY, maxX - minX, maxY - minY);
    }
 
    public Dictionary<string, double> GetTextCoordinates(List<TextElement> elements, int index, string imagePath)

@@ -1,5 +1,7 @@
-﻿using Cuata;
+﻿using Azure.Storage.Blobs;
+using Cuata;
 using Cuata.Services;
+using Microsoft.Extensions.Configuration;
 using System.Drawing;
 using System.Drawing.Imaging;
 
@@ -8,10 +10,12 @@ public class ScreenshotService
    private readonly ScreenshotClient _screenshotClient;
    private CancellationTokenSource? _cts;
    public bool IsRunning => _cts != null && !_cts.IsCancellationRequested;
+   private readonly IConfiguration _configuration;
 
-   public ScreenshotService(ScreenshotClient screenshotClient)
+   public ScreenshotService(ScreenshotClient screenshotClient,IConfiguration configuration)
    {
       _screenshotClient = screenshotClient;
+      _configuration = configuration;
    }
 
 
@@ -26,19 +30,37 @@ public class ScreenshotService
       _cts?.Cancel();
    }
 
+   public async Task ConsolidateSummaryAsync()
+   {
+      await _screenshotClient.ConsolidateSummaryAsync();
+   }
+
    private async Task LoopScreenshotAsync(string meetingId, CancellationToken token)
    {
       while (!token.IsCancellationRequested)
       {
+         await Task.Delay(TimeSpan.FromSeconds(20), token);
          var image = CaptureAndCompressScreenshot();
-         await SendToAzureFunctionAsync(meetingId, image);
+         var blobUri = await SaveScreenshotToBlob(image);
+         await SendToAzureFunctionAsync(meetingId, blobUri);
          await Task.Delay(TimeSpan.FromSeconds(20), token);
       }
    }
-
-   private async Task SendToAzureFunctionAsync(string meetingId, byte[] imageData)
+   public async Task<string> SaveScreenshotToBlob(byte[] imageBytes)
    {
-      await _screenshotClient.SendScreenshotAsync(imageData, meetingId);
+      var conn = _configuration.GetValue<string>("AzureWebJobsStorage")!;
+      var blobClient = new BlobContainerClient(conn, "screenshots");
+      await blobClient.CreateIfNotExistsAsync();
+
+      var blobName = $"screenshot-{DateTime.UtcNow:yyyyMMddHHmmssfff}.png";
+      var blob = blobClient.GetBlobClient(blobName);
+      await blob.UploadAsync(new MemoryStream(imageBytes), overwrite: true);
+
+      return blob.Uri.ToString();
+   }
+   private async Task SendToAzureFunctionAsync(string meetingId, string blobUri)
+   {
+      await _screenshotClient.SendScreenshotAsync(meetingId, blobUri);
    }
 
    public byte[] CaptureAndCompressScreenshot()

@@ -52,7 +52,12 @@ namespace Cuata.Modules
 
          CuataState.Instance.OnPresenceChanged += isPresent =>
          {
-            Console.WriteLine("Presence callback: " + isPresent);
+            if(isPresent)
+            {
+               Console.WriteLine("👤 User is present. Stopping the app.");
+               _recognizer.StopContinuousRecognitionAsync().Wait();
+               return;
+            }
          };
 
          AppContext.SetSwitch("Microsoft.SemanticKernel.Experimental.GenAI.EnableOTelDiagnosticsSensitive", _isAutomaticTelemetryEnabled);
@@ -81,8 +86,6 @@ namespace Cuata.Modules
          _kernel.ImportPluginFromObject(new ChromePlugin(), "ChromePlugin");
          _kernel.ImportPluginFromObject(new ScreenshotPlugin(_kernel), "ScreenshotPlugin");
          _kernel.ImportPluginFromObject(new LocatePlugin(_kernel, _serviceProvider), "LocatePlugin");
-         _kernel.ImportPluginFromObject(new SummarizePlugin(_kernel), "SummarizePlugin");
-         _kernel.ImportPluginFromObject(new WordPlugin(), "WordPlugin");
          _kernel.ImportPluginFromObject(new KeyboardPlugin(), "KeyboardPlugin");
 
          var chatHistory = new ChatHistory();
@@ -91,9 +94,6 @@ namespace Cuata.Modules
             """
             You are a helpful assistant that can help with Microsoft Teams related tasks.
             You can help listening to the meetings while the user is away.
-
-            Goal: Your goal is to grasp the context of the conversation and provide relevant information to the user when 
-            they are back.
 
             You have access to below Plugins:
 
@@ -118,8 +118,6 @@ namespace Cuata.Modules
             
             - `MoveMouse(x, y)`: Moves the mouse to the specified screen coordinates.
             - `LeftClick()`: Performs a left mouse click.
-            - `RightClick()`: Performs a right-click.
-            - `Scroll(amount)`: Scrolls the screen by a specified amount (positive or negative).
             
             ---
             
@@ -132,7 +130,19 @@ namespace Cuata.Modules
             - Use `KeyboardShortcut("Ctrl+Shift+T")` for complex combinations.
 
 
-            Strategy:
+            ---
+
+
+            Goal: Always follow the master strategy to pick the right strategy to follow. Master strategy is the one that will help you to decide which strategy to follow.
+          
+
+            **Master strategy:**
+
+            1. Capture the screen and verify if the meeting is open.
+            2. If the meeting is open, go to strategy 2.
+            3. If the meeting is not open, go to strategy 1.
+
+            **Strategy 1:**
 
             1. Open Microsoft Teams.
             2. Once Microsoft teams is open, you need to search for "calendar" and click on it.
@@ -157,6 +167,18 @@ namespace Cuata.Modules
             21. Once the meeting is over, search for "Leave" button and click on it.
             22. Take a screenshot of the screen and verify if you are out of the meeting.
             23. Once you are out of the meeting, share the notes with the user.
+
+
+            **Strategy 2:**
+                        
+            1. Inside the meeting verify if transcription is already started and you could see the transcript in the meeting window right panel.
+            2. If the transcription is not started, start the transcription.search for "more" button and click on it.
+            3. Take a screenshot of the screen and verify if the more options menu is open.
+            4. Once the more options menu is open, search for "Record and transcribe" button and don't click on it.
+            5. Take a screenshot of the screen and verify if the popup with "Start transcription" button is open.
+            6. Once the popup is open, search for "Start transcription" button and click on it.            
+            7. If it asks for permission, click on "Confirm" button"
+            8. Take a screenshot of the screen and verify if the transcription is started.
 
             """);
 

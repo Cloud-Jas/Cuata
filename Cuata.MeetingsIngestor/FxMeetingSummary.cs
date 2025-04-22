@@ -41,58 +41,41 @@ public class FxMeetingSummary
 
    [Function("HttpStartScreenshotSummary")]
    public async Task<HttpResponseData> HttpStartAsync(
-    [HttpTrigger(AuthorizationLevel.Function, "post", Route = "screenshotSummary")] HttpRequestData req,
-    [DurableClient] DurableTaskClient client)
+       [HttpTrigger(AuthorizationLevel.Function, "post", Route = "screenshotSummary")] HttpRequestData req,
+       [DurableClient] DurableTaskClient client)
    {
-      var boundary = GetBoundary(req.Headers);
-      var reader = new MultipartReader(boundary, req.Body);
-      var section = await reader.ReadNextSectionAsync();
-
-      string meetingId = null;
-      byte[] screenshotBytes = null;
-
-      while (section != null)
+      try
       {
-         var contentDisposition = section.GetContentDispositionHeader();
-
-         if (contentDisposition.IsFileDisposition())
+         var requestBody = await new StreamReader(req.Body).ReadToEndAsync();
+         var data = JsonSerializer.Deserialize<ScreenshotRequest>(requestBody, new JsonSerializerOptions
          {
-            using var ms = new MemoryStream();
-            await section.Body.CopyToAsync(ms);
-            screenshotBytes = ms.ToArray();
-         }
-         else if (contentDisposition.IsFormDisposition())
-         {
-            var key = contentDisposition.Name.Value;
-            var value = await new StreamReader(section.Body).ReadToEndAsync();
+            PropertyNameCaseInsensitive = true
+         });
 
-            if (key == "meetingId")
-            {
-               meetingId = value;
-            }
+         if (string.IsNullOrWhiteSpace(data?.MeetingId) || string.IsNullOrWhiteSpace(data?.BlobUri))
+         {
+            var badResponse = req.CreateResponse(System.Net.HttpStatusCode.BadRequest);
+            await badResponse.WriteStringAsync("Missing meetingId or blobUri.");
+            return badResponse;
          }
 
-         section = await reader.ReadNextSectionAsync();
+         var input = new
+         {
+            meetingId = data.MeetingId,
+            blobUri = data.BlobUri
+         };
+
+         string instanceId = await client.ScheduleNewOrchestrationInstanceAsync("OrchestrateScreenshotSummary", input);
+         return client.CreateCheckStatusResponse(req, instanceId);
       }
-
-      if (string.IsNullOrEmpty(meetingId) || screenshotBytes == null)
+      catch (Exception ex)
       {
-         var badResponse = req.CreateResponse(System.Net.HttpStatusCode.BadRequest);
-         await badResponse.WriteStringAsync("Missing meetingId or screenshot.");
-         return badResponse;
+         var errorResponse = req.CreateResponse(System.Net.HttpStatusCode.InternalServerError);
+         await errorResponse.WriteStringAsync($"Error processing the request: {ex.Message}");
+         return errorResponse;
       }
-
-      var input = new
-      {
-         meetingId,
-         image = Convert.ToBase64String(screenshotBytes)
-      };
-
-      string instanceId = await client.ScheduleNewOrchestrationInstanceAsync("OrchestrateScreenshotSummary", input);
-      var response = client.CreateCheckStatusResponse(req, instanceId);
-      return response;
    }
-   
+
    [Function("HttpStartConsolidatedSummary")]
    public async Task<HttpResponseData> HttpStartConsolidatedSummaryAsync(
     [HttpTrigger(AuthorizationLevel.Function, "post", Route = "consolidateSummary")] HttpRequestData req,
@@ -119,46 +102,22 @@ public class FxMeetingSummary
        [OrchestrationTrigger] TaskOrchestrationContext context)
    {
       var input = context.GetInput<Dictionary<string, string>>();
-      string base64Image = input["image"];
+      string blobUri = input["blobUri"];
       string meetingId = input["meetingId"];
 
-      var imageBytes = Convert.FromBase64String(base64Image);
-
-      var blobTask = context.CallActivityAsync<string>("SaveScreenshotToBlob", imageBytes);
-      var summaryTask = context.CallActivityAsync<string>("SummarizeImageContent", imageBytes);
-
-      await Task.WhenAll(blobTask, summaryTask);
-
-      var blobUrl = blobTask.Result;
-      var summary = summaryTask.Result;
-
+      var summary= await context.CallActivityAsync<string>("SummarizeImageContent", blobUri);
 
       var summaryModel = new MeetingSummary
       {
          id = Guid.NewGuid().ToString(),
          meetingId = meetingId,
-         imageUrl = blobUrl,
+         imageUrl = blobUri,
          summary = summary,
          timestamp = context.CurrentUtcDateTime
       };
 
       await context.CallActivityAsync("SaveSummaryToCosmos", summaryModel);
    }
-
-   [Function("SaveScreenshotToBlob")]
-   public async Task<string> SaveScreenshotToBlob([ActivityTrigger] byte[] imageBytes)
-   {
-      var conn = Environment.GetEnvironmentVariable("AzureWebJobsStorage")!;
-      var blobClient = new BlobContainerClient(conn, "screenshots");
-      await blobClient.CreateIfNotExistsAsync();
-
-      var blobName = $"screenshot-{DateTime.UtcNow:yyyyMMddHHmmssfff}.png";
-      var blob = blobClient.GetBlobClient(blobName);
-      await blob.UploadAsync(new MemoryStream(imageBytes), overwrite: true);
-
-      return blob.Uri.ToString();
-   }
-
    [Function("SummarizeImageContent")]
    public async Task<string> SummarizeImageContent([ActivityTrigger] string blobUrl)
    {

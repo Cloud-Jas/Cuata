@@ -1,10 +1,4 @@
 ﻿using Cuata.Modules;
-using Cuata.Services;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Cuata.Handlers
 {
@@ -29,7 +23,9 @@ namespace Cuata.Handlers
             if (!CuataState.Instance.IsPresent)
             {
                Console.WriteLine("👻 User not present. Triggering RunApp...");
-               await _teamsAgent.RunApp(CuataState.Instance.MeetingTitle ?? "Meeting");
+               await _teamsAgent.RunApp(CuataState.Instance.MeetingTitle);
+               _screenshotService.Start(CuataState.Instance.MeetingTitle!, CuataState.Instance.MeetingId!);
+               CuataState.Instance.IsScreenshotRunning = true;
             }
          }
          else
@@ -37,19 +33,21 @@ namespace Cuata.Handlers
             if (CuataState.Instance.IsScreenshotRunning)
             {
                _screenshotService.Stop();
-               Console.WriteLine("📧 You’ll receive a summary mail of what happened.");
+               await _screenshotService.ConsolidateSummaryAsync();
+               Console.WriteLine("📧 You’ll receive a summary in a moment.");
             }
          }
       }
 
-      private void OnPresenceChanged(bool isPresent)
+      private async void OnPresenceChanged(bool isPresent)
       {
          if (CuataState.Instance.IsMeetingOngoing)
          {
             if (!isPresent && !_screenshotService.IsRunning)
             {
                Console.WriteLine("🛑 User left during meeting. Starting screenshot loop...");
-               _screenshotService.Start(CuataState.Instance.MeetingTitle ?? "Meeting",CuataState.Instance.MeetingId ?? "AAMkAGQ5YzgxOWJiLWNmMWUtNDg2MC1hZjRkLWE0YzhhZWI0Y2FkZABGAAAAAABsg8Kv6SHRSYg2zYOaHUcZBwDNZm03iP_kRoijVOnlvXohAAAAAAENAADNZm03iP_kRoijVOnlvXohAABDyxbmAAA=");
+               await _teamsAgent.RunApp(CuataState.Instance.MeetingTitle);
+               _screenshotService.Start(CuataState.Instance.MeetingTitle! ,CuataState.Instance.MeetingId! );
                CuataState.Instance.IsScreenshotRunning = true;
             }
             else if (isPresent && _screenshotService.IsRunning)
@@ -57,7 +55,8 @@ namespace Cuata.Handlers
                Console.WriteLine("✅ User returned. Stopping screenshot loop.");
                _screenshotService.Stop();
                CuataState.Instance.IsScreenshotRunning = false;
-               Console.WriteLine("📧 You’ll receive a summary mail of what happened.");
+               await _screenshotService.ConsolidateSummaryAsync();
+               Console.WriteLine("📧 You’ll receive a summary in a moment.");
             }
          }
       }
