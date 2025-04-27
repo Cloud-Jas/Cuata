@@ -2,7 +2,7 @@
 
 # Introduction
 
-This idea started when I thought about building something that can be your assistant during a Microsoft Teams meeting—especially for those small breaks when you need to step away for a minute. Whether it's someone at the door, or an urgent call, we all have moments where we have to leave the meeting but don’t want to miss anything important. I named it Cuata, which originally stood for Computer Using Agent Team’s Assistant. But funnily enough, I later found out Cuata means “buddy” in Spanish—and it actually fits perfectly with the whole idea.
+This idea started when I thought about building something that can be your assistant during a Microsoft Teams meeting, especially for those small breaks when you need to step away for a minute. Whether it's someone at the door, or an urgent call, we all have moments where we have to leave the meeting but don’t want to miss anything important. I named it Cuata, which originally stood for Computer Using Agent Team’s Assistant. But funnily enough, I later found out Cuata means “buddy” in Spanish—and it actually fits perfectly with the whole idea.
 
 Cuata is like your digital buddy that steps in for you, watches what’s going on in the meeting, listens to the discussion, looks at the shared screen or slides, and when you come back, gives you a quick summary of what you missed—along with screenshots if there were any slides. That way, you're always in the loop.
 
@@ -14,9 +14,25 @@ Over time, this evolved. I figured out I could use the same approach to browse w
 There are times when you need to step away from your computer during a meeting or while you're doing something important—but you still want to know what happened while you were gone. Most of the time, we end up asking teammates later, or watching long recordings just to catch up. That’s not efficient. I wanted to solve this exact problem: How can I make something that fills in for me, just for those few minutes, and tells me exactly what happened without me missing a beat?
 
 
+# Challenges Involved
+
+I encountered challenges when trying to make the system behave more like a human, especially for handling complex tasks. To address this, I broke down each task into smaller, manageable steps and processed them recursively. This approach helped simplify the process and made it more efficient. Additionally, I implemented a validation step after each action to ensure everything was executed correctly and as expected.
+
+Another major challenge was summarizing long meetings. Turning extensive discussions into concise, meaningful summaries can be time-consuming. To solve this, I leveraged Azure Durable Functions to orchestrate the entire summarization process and Azure Open AI multimodal to understand both the image in the presentation along with transcription text. Once the summary is ready, it sends a notification to the user.
+
+- <b> Human-like Interaction: </b> Simulating user behavior to click, scroll, or type contextually through visual cues on-screen. Everything is built custom as I don't have access to CUA agent models.
+
+- <b> Real-Time Comprehension: </b> Capturing and summarizing live meeting content including shared screens, slides, and spoken words.
+
+- <b> Cross-Context Understanding: </b> Being able to generalize its behavior across websites, articles, documents, and apps.
+
+- <b> Robust Action Validation: </b> Ensuring actions taken (like clicking a button or typing in a field) are contextually correct and verified.
+
+- <b> Orchestrating Multimodal Inputs: </b> Merging screen content, images, and interaction flows in a unified LLM-powered workflow.
+
 # Highlights
 
-🧠 <b> Built a custom Computer Using Agent </b> that can operate your computer just like a human using Semantic Kernel along with different plugins 
+🧠 <b> Built a custom Computer Using Agent </b> that can operate your computer just like a human using Semantic Kernel along with different plugins and it is not using <b> CUA agent models </b>
 
 🌐 <b> Microsoft Team's Assistant </b> built to monitor meetings while you're away — providing meeting summaries, slide snapshots, and key discussions you missed.
 
