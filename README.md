@@ -187,8 +187,25 @@ It’s part of the “Think → Select Strategy → Execute” loop that the age
 
 # Meetings Handling – Two Main Workflows
 
-There are two possible flows within the Teams Meetings Agent:
+There are two possible flows within this workflow:
 
+## When user is not present at the beginning of the meeting
+
+1. Meeting Notifier flow triggers when the meeting is about to start. It sends a notification to the our Cuata agent.
+2. Now the agent checks if the user is present in front of the system using OpenCV.
+3. If the user is present, it does nothing. If not present, it triggers the Teams agent workflow
+4. It opens the calendar, search for the meeting , and joins it.
+5. Once joined, it mutes and starts the transcription.
+6. It then starts listening to the meeting and takes screenshots at regular intervals.
+7. Once the meeting is over or the user is back, it stops the transcription and sends a summary of the meeting to the user.
+
+## When user left in the middle of the meeting
+
+1. Teams agent flow triggers and checks if the meeting is ongoing.
+2. If the meeting is ongoing, it checks if the user is present in front of the system using OpenCV.
+3. If the user is present, it does nothing. If not present, it triggers the Teams agent workflow
+4. It starts listening to the meeting and takes screenshots at regular intervals.
+5. Once the meeting is over or the user is back, it stops the transcription and sends a summary of the meeting to the user.
 
 # Sponsor
 
