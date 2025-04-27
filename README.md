@@ -1,18 +1,14 @@
 ﻿<div id="top"></div> <h1 align="center"> <a href="https://iamdivakarkumar.com/" style="text-decoration: none;" target="_blank"> <img height="240" src="./docs/images/DigitalTwinBuddy.png" alt="Cuata Logo"/> <br/> Cuata - Computer-Using Agent Team's Assistant </a> </h1> <p align="center"> <b> Your Digital Twin Buddy </b> </p> <br/>
-<p align="center"> Built with custom logic to mimic CUA like interface </p>
 
 # Introduction
 
-This idea started when I thought about building something that can be your assistant during a Microsoft Teams meeting, especially for those small breaks when you need to step away for a minute. Whether it's someone at the door, or an urgent call, we all have moments where we have to leave the meeting but don’t want to miss anything important. I named it Cuata, which originally stood for Computer Using Agent Team’s Assistant. But later I found out Cuata means “buddy” in Spanish—and it actually fits perfectly with the whole idea.
+Cuata is a digital buddy designed to help you stay in the loop during meetings, even when you step away for a moment. Whether it's for an urgent call or a quick break, your digital buddy that steps in for you, watches what’s going on in the meeting, listens to the discussion, looks at the shared screen or slides, and when you come back, gives you a quick summary of what you missed along with screenshots if there were any slides. That way, you're always in the loop. 
 
-Cuata is like your digital buddy that steps in for you, watches what’s going on in the meeting, listens to the discussion, looks at the shared screen or slides, and when you come back, gives you a quick summary of what you missed along with screenshots if there were any slides. That way, you're always in the loop.
-
-Over time, this evolved. I figured out I could use the same approach to browse websites, read articles, search for info about people or topics, and even write short summaries directly into Microsoft Word. It’s like having a smart helper that can see, understand, and act like you on your own computer.
-
+I named it Cuata, which originally stood for Computer Using Agent Team’s Assistant. But later I found out Cuata means “buddy” in Spanish and it actually fits perfectly with the whole idea. Over time, this evolved. I figured out I could use the same approach to browse websites, read articles, search for info about people or topics, and even write short summaries directly into Microsoft Word. It’s like having a smart helper that can see, understand, and act like you on your own computer.
 
 # Problem Statement
 
-There are times when you need to step away from your computer during a meeting or while you're doing something important—but you still want to know what happened while you were gone. Most of the time, we end up asking teammates later, or watching long recordings just to catch up. That’s not efficient. I wanted to solve this exact problem: How can I make something that fills in for me, just for those few minutes, and tells me exactly what happened without me missing a beat?
+There are times when you need to step away from your computer during a meeting or while you're doing something important—but you still want to know what happened while you were gone. Most of the time, we end up asking teammates later, or watching long recordings just to catch up. That’s not efficient. I wanted to solve this exact problem: How can I make something that fills in for me, just for those few minutes, and tells me exactly what happened without me missing anything?
 
 
 # Challenges Involved
