@@ -44,8 +44,7 @@ var host = new HostBuilder()
        services.AddSingleton(new ServiceBusClient(cfg["ServiceBusConnectionString"]));
        services.AddSingleton(s =>
            new ServiceBusPublisher(
-               s.GetRequiredService<ServiceBusClient>(),
-               cfg["ServiceBusQueueName"]
+               s.GetRequiredService<ServiceBusClient>()
            ));
 
        var scopes = new[] { "https://graph.microsoft.com/.default" };

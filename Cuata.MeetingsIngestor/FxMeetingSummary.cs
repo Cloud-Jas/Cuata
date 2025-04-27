@@ -156,7 +156,7 @@ public class FxMeetingSummary
       await service.UpsertSummaryAsync(summary);
    }
 
-   [Function("OrchestrateConsolidatedSummary")]
+   [Function("OrchestrateGenerateAndPublishSummary")]
    public async Task RunConsolidatedSummaryOrchestratorAsync([OrchestrationTrigger] TaskOrchestrationContext context)
    {
       var meetingId = context.GetInput<string>();
@@ -179,11 +179,28 @@ public class FxMeetingSummary
       var chatService = _kernel.GetRequiredService<IChatCompletionService>();
       var history = new ChatHistory();
 
-      history.AddUserMessage("You are a meeting analyst assistant. Analyze the following summaries from different meeting screenshots.");
-      history.AddUserMessage("Step 1: Identify which summaries contain very important insights or action points.");
-      history.AddUserMessage("Step 2: Provide a consolidated overall summary of the meeting.");
-      history.AddUserMessage("Step 3: Return only the image URLs that correspond to those important summaries. Output format should be JSON like this:\n" +
-                             "{ \"FinalSummary\": \"...\", \"ImportantImageUrls\": [\"https://...\", \"https://...\"] }");
+      history.AddSystemMessage("""
+         You are a meeting analyst assistant. Analyze the following summaries from different meeting screenshots.
+         You are provided with a list of summaries and their corresponding image URLs.
+         Identify which summaries contain very important insights or action points.
+         Try to consolidate the summaries into a single overall summary of the meeting.
+         Make sure to capture all the important details and provide a summary.
+         Don't miss any important details.
+         
+         Return in the below format don't add ```json and ``` at the start and end of the response.
+         
+         {
+            "FinalSummary": "...",
+            "ImportantImageUrls": ["https://...", "https://..."]
+         }
+
+         Example:
+         {
+            "FinalSummary": "The meeting discussed the project timeline and deliverables. Action items include...",
+            "ImportantImageUrls": ["https://example.com/image1.jpg", "https://example.com/image2.jpg"]
+         }
+
+         """);
 
       foreach (var s in summaries)
       {

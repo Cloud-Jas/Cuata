@@ -7,7 +7,12 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Cuata", "CuataApp\Cuata.csp
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Cuata.MeetingsIngestor", "Cuata.MeetingsIngestor\Cuata.MeetingsIngestor.csproj", "{EBB50BF7-FEAE-4195-98DD-02F29E30ADDB}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Cuata.OpenCv", "Cuata.OpenCv\Cuata.OpenCv.csproj", "{5F94A04E-456D-4F15-9828-836063C767A5}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Cuata.OpenCv", "Cuata.OpenCv\Cuata.OpenCv.csproj", "{5F94A04E-456D-4F15-9828-836063C767A5}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "SolutionItems", "SolutionItems", "{B97EBA8F-4F9C-4B25-BAD6-24C9B29A1FF6}"
+	ProjectSection(SolutionItems) = preProject
+		README.md = README.md
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

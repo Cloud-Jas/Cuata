@@ -41,14 +41,14 @@ public class OpenCvPresenceService : BackgroundService
                if (i == 0)
                {
                   previousPresenceState = true;
-                  await serviceBusPublisherService.SendMessageAsync("Left");
+                  await serviceBusPublisherService.SendMessageAsync("Present");
                   Console.WriteLine("Message sent to Service Bus: You are present");
                }
                if (!previousPresenceState && i > 0)
                {
                   previousPresenceState = true;
                   i = 0;
-                  await serviceBusPublisherService.SendMessageAsync("Left");
+                  await serviceBusPublisherService.SendMessageAsync("Present");
                   Console.WriteLine("Message sent to Service Bus: You are present");
                }
                Console.WriteLine("🧑 You are present");

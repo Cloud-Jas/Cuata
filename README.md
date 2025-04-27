@@ -1,1 +1,148 @@
-# Cuata
+﻿<div id="top"></div> <h1 align="center"> <a href="https://iamdivakarkumar.com/" style="text-decoration: none;" target="_blank"> <img height="240" src="./docs/images/DigitalTwinBuddy.jpeg" alt="Cuata Logo"/> <br/> Cuata - Computer-Using Agent Team's Assistant </a> </h1> <p align="center"> <b> Your Digital Twin Buddy </b> </p> <br/>
+
+# Introduction
+
+This idea started when I thought about building something that can be your assistant during a Microsoft Teams meeting—especially for those small breaks when you need to step away for a minute. Whether it's someone at the door, or an urgent call, we all have moments where we have to leave the meeting but don’t want to miss anything important. I named it Cuata, which originally stood for Computer Using Agent Team’s Assistant. But funnily enough, I later found out Cuata means “buddy” in Spanish—and it actually fits perfectly with the whole idea.
+
+Cuata is like your digital buddy that steps in for you, watches what’s going on in the meeting, listens to the discussion, looks at the shared screen or slides, and when you come back, gives you a quick summary of what you missed—along with screenshots if there were any slides. That way, you're always in the loop.
+
+Over time, this evolved. I figured out I could use the same approach to browse websites, read articles, search for info about people or topics, and even write short summaries directly into Microsoft Word. It’s like having a smart helper that can see, understand, and act like you on your own computer.
+
+
+# Problem Statement
+
+There are times when you need to step away from your computer during a meeting or while you're doing something important—but you still want to know what happened while you were gone. Most of the time, we end up asking teammates later, or watching long recordings just to catch up. That’s not efficient. I wanted to solve this exact problem: How can I make something that fills in for me, just for those few minutes, and tells me exactly what happened without me missing a beat?
+
+
+# Highlights
+
+🧠 <b> Built a custom Computer Using Agent </b> that can operate your computer just like a human using Semantic Kernel along with different plugins 
+
+🌐 <b> Microsoft Team's Assistant </b> built to monitor meetings while you're away — providing meeting summaries, slide snapshots, and key discussions you missed.
+
+📝 <b> Browser Assistant </b> Extension to search articles, read webpages, summarize key information, and even document findings into Word files automatically.
+
+👥 <b> "Cuata" - Your Digital Twin Buddy </b> who stays active, listens, thinks, and acts on your behalf when you need it most.
+
+
+# Architecture
+
+![Image description](https://dev-to-uploads.s3.amazonaws.com/uploads/articles/1hsf7vn8ql3qphpbycyd.JPG)
+
+This is how Cuata works under the hood. Everything is built to act like a digital version of you—watching your screen, listening to the meeting, clicking around, typing when needed, and most importantly, knowing what’s going on and reporting it back to you clearly.
+
+<b style="color:orange">
+
+```quote
+Disclaimer: Don't misuse this technology. It's meant to help when you left your computer for a minute, not to replace you entirely. Always be ethical and responsible with AI.
+```
+
+</b>
+
+At the center of everything sits Semantic Kernel, which acts as Cuata's brain to coordinate all the actions. It plans what to do next, picks the right plugin, asks for confirmations, and even fixes mistakes by re-evaluating decisions. It was chosen because it offers a flexible and modular way to build a real "thinking" assistant, not just a script that clicks blindly.
+
+To actually perform actions like moving the mouse, typing, clicking links, validating screen content, or taking screenshots, Cuata uses a set of plugins like Mouse, Keyboard, Chrome, Locate, and Screenshot Plugins.
+
+🖱️ Mouse, Keyboard, Screenshot, and Locate Plugins allow Cuata to perform any action a typical human would do on the system.
+
+📸 Screenshot Plugin Validation helps double-check if the right action was performed after each click or typing operation.
+
+
+# High level components
+
+🎥 <b> OpenCV: </b> To check if the user is still present in front of the system during a meeting, OpenCV is used. It simply detects the presence of a face using a lightweight model. This way, Cuata knows whether to stay passive or actively listen and summarize when the user steps away. OpenCV was chosen because it’s fast, doesn't demand heavy GPU power, and works well for simple face detection tasks.
+
+🔍 <b> Azure OCR: </b> Mainly used to locate text elements on the screen. It detects text positions, captures their coordinates, and helps Cuata move the mouse to the right spots to click or interact just like a human would. Instead of understanding meaning, it acts more like the "eyes" that help navigate the desktop reliably.
+
+🛠️ <b> Semantic Kernel: </b> acts as the brain, coordinating all plugins and decision-making through a Think → Select Strategy → Execute loop.
+
+🗣️ <b> Azure OpenAI: </b> Cuata uses Azure OpenAI to handle all the natural language processing needs. Whether it’s summarizing what happened during a meeting, verifying if an action on the screen was done correctly, or planning the next steps, OpenAI provides a reliable brain for the system.
+
+📂 <b> Azure Durable Functions: </b> manage long-running operations like summarizing meetings, consolidating data, and sending notifications.
+
+🛢️ <b> Azure Cosmos DB: </b> stores all the data, including meeting summaries, user preferences, and any other information Cuata needs to function smoothly.
+
+📂 <b> Azure Blob Storage: </b> used to store all the screenshots taken during meetings, so you can refer back to them later.
+ 
+📨 <b> Azure Service Bus: </b> used to send messages between different components of the system, ensuring everything works together seamlessly.
+
+## Prerequisites
+
+1. Will work only in Windows OS
+2. Visual Studio 2022 or later
+3. Azure Vision API Key
+4. Azure Speech API Key
+5. Azure OpenAI Key
+6. Azure AD app registration for Microsoft Graph API to fetch meeting details
+7. Azure Cosmos DB account
+8. Azure Blob Storage account
+9. Azure Service Bus account
+
+# Steps to run the project locally
+
+- Relace the `appsettings.json` in the Cuata, Cuata.MeetingsIngestor and Cuata.OpenCV Project with the values
+
+```json
+{
+    "Logging": {
+        "LogLevel": {
+            "Default": "Information",
+            "Microsoft.AspNetCore": "Warning"
+        }
+    },
+    "TenantId": "YOUR_TenantId",
+    "APPINSIGHTS_INSTRUMENTATIONKEY": "YOUR_APPINSIGHTS_INSTRUMENTATIONKEY",
+    "OTEL_EXPORTER_OTLP_ENDPOINT": "http://localhost:4317",
+    "OpenAIEndpoint": "YOUR_ENDPOINT",
+    "OpenAIChatCompletionDeploymentName": "gpt4",
+    "OpenAITextEmbeddingGenerationDeploymentName": "embedding-small",
+    "APPLICATIONINSIGHTS_CONNECTION_STRING": "YOUR_APPLICATIONINSIGHTS_CONNECTION_STRING",
+    "IsAutomaticTelemetryEnabled": false,
+    "ServiceBusConnectionString": "YOUR_ServiceBusConnectionString",
+    "ServiceBusQueueName": "meetings",
+    "CognitiveServicesVisionEndpoint": "YOUR_CognitiveServicesVisionEndpoint",
+    "CognitiveServicesVisionKey": "YOUR_CognitiveServicesVisionKey",
+    "CognitiveServicesSpeechEndpoint": "YOUR_CognitiveServicesSpeechEndpoint",
+    "CognitiveServicesSpeechRegion": "eastus",
+    "CognitiveServicesSpeechKey": "YOUR_CognitiveServicesSpeechKey",
+    "AzureScreenshotFunctionUrl": "http://localhost:7163/api/screenshotSummary",
+    "AzureConsolidateSummaryFunctionUrl": "http://localhost:7163/api/consolidateSummary",
+    "AzureWebJobsStorage": "YOUR_AzureWebJobsStorage"
+}
+```
+
+- For the Azure Function, replace the `local.settings.json` with the values
+
+```json
+    {
+        "IsEncrypted": false,
+        "Values": {
+            "AzureWebJobsStorage": "UseDevelopmentStorage=true",
+            "FUNCTIONS_WORKER_RUNTIME": "dotnet-isolated",
+            "CosmosDbConnectionString": "YOURCosmosDbConnectionString",
+            "CosmosDbDatabaseName": "Cuata",
+            "CosmosDbContainerName": "Meetings",
+            "CosmosDbMeetingSummaryContainerName": "MeetingSummary",
+            "ServiceBusConnectionString": "YOURServiceBusConnectionString",
+            "ServiceBusQueueName": "meetings",
+            "ClientId": "YOURClientId",
+            "ClientSecret": "YOURClientSecret",
+            "TenantId": "YOURTenantId",
+            "OpenAIEndpoint": "YOUROPENAIENDPOINT"
+            "OpenAIChatCompletionDeploymentName": "gpt4",
+            "OpenAITextEmbeddingGenerationDeploymentName": "embedding-small"
+        }
+    }
+```
+
+# Sponsor
+
+Leave a ⭐ if you like this project
+
+<a href="https://www.buymeacoffee.com/divakarkumar" target="_blank"><img src="https://cdn.buymeacoffee.com/buttons/v2/default-yellow.png" alt="Buy Me A Coffee" style="height: 40px !important;width: 145 !important;" ></a>
+
+&copy; [Divakar Kumar](//github.com/Divakar-Kumar)
+
+# Contact
+
+[Website](//iamdivakarkumar.com) | [LinkedIn](https://www.linkedin.com/in/divakar-kumar/)

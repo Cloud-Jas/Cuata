@@ -34,7 +34,7 @@ public class ServiceBusReceiverService : BackgroundService
          AutoCompleteMessages = false
       });
 
-      _meetingConsolidationProcessor = _client.CreateProcessor("meetingsConsolidated", new ServiceBusProcessorOptions
+      _meetingConsolidationProcessor = _client.CreateProcessor("meetingsconsolidated", new ServiceBusProcessorOptions
       {
          MaxConcurrentCalls = 1,
          AutoCompleteMessages = false
@@ -56,9 +56,8 @@ public class ServiceBusReceiverService : BackgroundService
 
    private async Task ProcessMeetingConsolidatorMessage(ProcessMessageEventArgs args)
    {
-      var message = args.Message;
-      var body = message.Body.ToString();
-      var summary = JsonConvert.DeserializeObject<ConsolidatedSummaryResult>(body);
+      var jsonString = Encoding.UTF8.GetString(args.Message.Body.ToArray());
+      var summary = JsonConvert.DeserializeObject<ConsolidatedSummaryResult>(jsonString);
       CuataState.Instance.ConsolidatedSummary = summary;
       await args.CompleteMessageAsync(args.Message);
    }
@@ -97,6 +96,7 @@ public class ServiceBusReceiverService : BackgroundService
       Console.WriteLine("🟢 Starting both Service Bus receivers...");
       await _meetingProcessor.StartProcessingAsync(stoppingToken);
       await _presenceProcessor.StartProcessingAsync(stoppingToken);
+      await _meetingConsolidationProcessor.StartProcessingAsync(stoppingToken);
       await Task.Delay(Timeout.Infinite, stoppingToken);
    }
 
@@ -105,8 +105,10 @@ public class ServiceBusReceiverService : BackgroundService
       Console.WriteLine("🔴 Stopping both Service Bus receivers...");
       await _meetingProcessor.StopProcessingAsync();
       await _presenceProcessor.StopProcessingAsync();
+      await _meetingConsolidationProcessor.StopProcessingAsync();
       await _meetingProcessor.DisposeAsync();
       await _presenceProcessor.DisposeAsync();
+      await _meetingConsolidationProcessor.DisposeAsync();
       await base.StopAsync(cancellationToken);
    }
 }
