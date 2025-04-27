@@ -158,7 +158,7 @@ Once the agent has completed its task, the results are pushed to external system
 
 ## Prerequisites
 
-1. Will work only in Windows OS
+1. Google Chrome
 2. Visual Studio 2022 or later
 3. Azure Vision API Key
 4. Azure Speech API Key
@@ -167,6 +167,10 @@ Once the agent has completed its task, the results are pushed to external system
 7. Azure Cosmos DB account
 8. Azure Blob Storage account
 9. Azure Service Bus account
+
+```
+ Disclaimers: This project is supported only on Windows OS.
+```
 
 # Steps to run the project locally
 
