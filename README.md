@@ -1,10 +1,11 @@
 ﻿<div id="top"></div> <h1 align="center"> <a href="https://iamdivakarkumar.com/" style="text-decoration: none;" target="_blank"> <img height="240" src="./docs/images/DigitalTwinBuddy.png" alt="Cuata Logo"/> <br/> Cuata - Computer-Using Agent Team's Assistant </a> </h1> <p align="center"> <b> Your Digital Twin Buddy </b> </p> <br/>
+<p align="center"> Built with custom logic to mimic CUA like interface </p>
 
 # Introduction
 
-This idea started when I thought about building something that can be your assistant during a Microsoft Teams meeting, especially for those small breaks when you need to step away for a minute. Whether it's someone at the door, or an urgent call, we all have moments where we have to leave the meeting but don’t want to miss anything important. I named it Cuata, which originally stood for Computer Using Agent Team’s Assistant. But funnily enough, I later found out Cuata means “buddy” in Spanish—and it actually fits perfectly with the whole idea.
+This idea started when I thought about building something that can be your assistant during a Microsoft Teams meeting, especially for those small breaks when you need to step away for a minute. Whether it's someone at the door, or an urgent call, we all have moments where we have to leave the meeting but don’t want to miss anything important. I named it Cuata, which originally stood for Computer Using Agent Team’s Assistant. But later I found out Cuata means “buddy” in Spanish—and it actually fits perfectly with the whole idea.
 
-Cuata is like your digital buddy that steps in for you, watches what’s going on in the meeting, listens to the discussion, looks at the shared screen or slides, and when you come back, gives you a quick summary of what you missed—along with screenshots if there were any slides. That way, you're always in the loop.
+Cuata is like your digital buddy that steps in for you, watches what’s going on in the meeting, listens to the discussion, looks at the shared screen or slides, and when you come back, gives you a quick summary of what you missed along with screenshots if there were any slides. That way, you're always in the loop.
 
 Over time, this evolved. I figured out I could use the same approach to browse websites, read articles, search for info about people or topics, and even write short summaries directly into Microsoft Word. It’s like having a smart helper that can see, understand, and act like you on your own computer.
 
@@ -82,6 +83,80 @@ To actually perform actions like moving the mouse, typing, clicking links, valid
  
 📨 <b> Azure Service Bus: </b> used to send messages between different components of the system, ensuring everything works together seamlessly.
 
+
+# Teams Agent Workflow:
+
+![Image description](https://dev-to-uploads.s3.amazonaws.com/uploads/articles/06qcbohoqq3ga4o9q7ho.JPG)
+
+Teams Agent flow shows how Cuata acts like a personal assistant that attends your meetings, summarizes them, and keeps you informed.
+
+- At the core, we have the Computer Using Agent, which acts like a mini human assistant operating the computer. It uses different plugins like:
+    - Mouse Plugin
+    - Keyboard Plugin
+    - Chrome Plugin
+    - Screenshot Plugin
+    - Locate Plugin 
+
+These let it interact with the system just like a user.
+
+Inside this agent is the OpenCV Processor that does below actions 
+
+- Checks if you're present in front of the system or not.
+- It uses OpenCV face detection to figure out if your face is visible on the webcam.
+- This helps Cuata know when you’re active during a meeting or if you’ve stepped away.
+- That info can then be used to trigger smart decisions like:
+  - Sending you a summary when you're back
+  - Letting teammates know you’re away
+  - Or adjusting what to summarize based on who was present
+
+It’s part of the “Think → Select Strategy → Execute” loop that the agent follows.
+
+# Meetings Handling – Two Main Workflows
+
+There are two possible flows within this workflow:
+
+## When user is not present at the beginning of the meeting
+
+1. Meeting Notifier flow triggers when the meeting is about to start. It sends a notification to the our Cuata agent.
+2. Now the agent checks if the user is present in front of the system using OpenCV.
+3. If the user is present, it does nothing. If not present, it triggers the Teams agent workflow
+4. It opens the calendar, search for the meeting , and joins it.
+5. Once joined, it mutes and starts the transcription.
+6. It then starts listening to the meeting and takes screenshots at regular intervals.
+7. Once the meeting is over or the user is back, it stops the transcription and sends a summary of the meeting to the user.
+
+## When user left in the middle of the meeting
+
+1. Teams agent flow triggers and checks if the meeting is ongoing.
+2. If the meeting is ongoing, it checks if the user is present in front of the system using OpenCV.
+3. If the user is present, it does nothing. If not present, it triggers the Teams agent workflow
+4. It starts listening to the meeting and takes screenshots at regular intervals.
+5. Once the meeting is over or the user is back, it stops the transcription and sends a summary of the meeting to the user.
+
+
+## Browser Agent Workflow
+
+![Image description](https://dev-to-uploads.s3.amazonaws.com/uploads/articles/ljltxs8jrsbd0lmw1mm7.JPG)
+
+The "Browser Agent tool" is a powerful tool powered by Azure OpenAI and Semantic Kernel, designed to automate tasks and interact with systems intelligently. It operates in a continuous loop, where it processes instructions and breaks them down into manageable tasks for execution. Here's how it works:
+
+- Instruction Processing: The agent begins by analyzing the input instruction and then splits it into smaller, actionable tasks, ensuring each one is clear and achievable.
+
+- Task Execution: The tasks are executed by leveraging the appropriate plugins for each action. This could involve interacting with browsers, taking screenshots, or processing text.
+
+- Plugins Powering the Browser Agent:
+Chrome Plugin + Keyboard/Mouse Plugin: These plugins enable the agent to interact with web browsers in the same way a human would. It can simulate actions like typing, clicking, and navigating through different web pages.
+
+- Screenshot Plugin: This plugin allows the agent to capture a screenshot of the current screen, which is then sent to Azure OpenAI for analysis. This helps the agent understand what is displayed and validate if actions (such as clicking a button) have been completed correctly, creating a feedback loop for accurate task completion.
+
+- Locate Plugin: The locate plugin extracts and identifies text elements from the screen. It defines their exact boundaries and coordinates, enabling the agent to know exactly where to click or where to input text, thus improving precision in task execution. It does this effectively with the help of Azure OCR.
+
+- Summarize Plugin: The agent can take screenshots and request Azure OpenAI to summarize the content of the screen. This is particularly useful for reading lengthy articles, reports, or emails and providing concise summaries or key takeaways.
+
+<b> Output Flow: </b>
+
+Once the agent has completed its task, the results are pushed to external systems such as Windows applications, Outlook, or Word. This feature enables the agent to not only browse and collect information but also deliver tangible results by integrating seamlessly with other software and systems, making it a versatile and efficient assistant.
+
 ## Prerequisites
 
 1. Will work only in Windows OS
@@ -150,78 +225,6 @@ To actually perform actions like moving the mouse, typing, clicking links, valid
         }
     }
 ```
-
-## Browser Agent Workflow
-
-![Image description](https://dev-to-uploads.s3.amazonaws.com/uploads/articles/ljltxs8jrsbd0lmw1mm7.JPG)
-
-The "Browser Agent tool" is a powerful tool powered by Azure OpenAI and Semantic Kernel, designed to automate tasks and interact with systems intelligently. It operates in a continuous loop, where it processes instructions and breaks them down into manageable tasks for execution. Here's how it works:
-
-- Instruction Processing: The agent begins by analyzing the input instruction and then splits it into smaller, actionable tasks, ensuring each one is clear and achievable.
-
-- Task Execution: The tasks are executed by leveraging the appropriate plugins for each action. This could involve interacting with browsers, taking screenshots, or processing text.
-
-- Plugins Powering the Browser Agent:
-Chrome Plugin + Keyboard/Mouse Plugin: These plugins enable the agent to interact with web browsers in the same way a human would. It can simulate actions like typing, clicking, and navigating through different web pages.
-
-- Screenshot Plugin: This plugin allows the agent to capture a screenshot of the current screen, which is then sent to Azure OpenAI for analysis. This helps the agent understand what is displayed and validate if actions (such as clicking a button) have been completed correctly, creating a feedback loop for accurate task completion.
-
-- Locate Plugin: The locate plugin extracts and identifies text elements from the screen. It defines their exact boundaries and coordinates, enabling the agent to know exactly where to click or where to input text, thus improving precision in task execution. It does this effectively with the help of Azure OCR.
-
-- Summarize Plugin: The agent can take screenshots and request Azure OpenAI to summarize the content of the screen. This is particularly useful for reading lengthy articles, reports, or emails and providing concise summaries or key takeaways.
-
-<b> Output Flow: </b>
-
-Once the agent has completed its task, the results are pushed to external systems such as Windows applications, Outlook, or Word. This feature enables the agent to not only browse and collect information but also deliver tangible results by integrating seamlessly with other software and systems, making it a versatile and efficient assistant.
-
-# Teams Agent Workflow:
-
-![Image description](https://dev-to-uploads.s3.amazonaws.com/uploads/articles/06qcbohoqq3ga4o9q7ho.JPG)
-
-Teams Agent flow shows how Cuata acts like a personal assistant that attends your meetings, summarizes them, and keeps you informed.
-
-- At the core, we have the Computer Using Agent, which acts like a mini human assistant operating the computer. It uses different plugins like:
-    - Mouse Plugin
-    - Keyboard Plugin
-    - Chrome Plugin
-    - Screenshot Plugin
-    - Locate Plugin 
-
-These let it interact with the system just like a user.
-
-Inside this agent is the OpenCV Processor that does below actions 
-
-- Checks if you're present in front of the system or not.
-- It uses OpenCV face detection to figure out if your face is visible on the webcam.
-- This helps Cuata know when you’re active during a meeting or if you’ve stepped away.
-- That info can then be used to trigger smart decisions like:
-  - Sending you a summary when you're back
-  - Letting teammates know you’re away
-  - Or adjusting what to summarize based on who was present
-
-It’s part of the “Think → Select Strategy → Execute” loop that the agent follows.
-
-# Meetings Handling – Two Main Workflows
-
-There are two possible flows within this workflow:
-
-## When user is not present at the beginning of the meeting
-
-1. Meeting Notifier flow triggers when the meeting is about to start. It sends a notification to the our Cuata agent.
-2. Now the agent checks if the user is present in front of the system using OpenCV.
-3. If the user is present, it does nothing. If not present, it triggers the Teams agent workflow
-4. It opens the calendar, search for the meeting , and joins it.
-5. Once joined, it mutes and starts the transcription.
-6. It then starts listening to the meeting and takes screenshots at regular intervals.
-7. Once the meeting is over or the user is back, it stops the transcription and sends a summary of the meeting to the user.
-
-## When user left in the middle of the meeting
-
-1. Teams agent flow triggers and checks if the meeting is ongoing.
-2. If the meeting is ongoing, it checks if the user is present in front of the system using OpenCV.
-3. If the user is present, it does nothing. If not present, it triggers the Teams agent workflow
-4. It starts listening to the meeting and takes screenshots at regular intervals.
-5. Once the meeting is over or the user is back, it stops the transcription and sends a summary of the meeting to the user.
 
 # Sponsor
 
