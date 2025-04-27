@@ -1,4 +1,4 @@
-﻿<div id="top"></div> <h1 align="center"> <a href="https://iamdivakarkumar.com/" style="text-decoration: none;" target="_blank"> <img height="240" src="./docs/images/DigitalTwinBuddy.jpeg" alt="Cuata Logo"/> <br/> Cuata - Computer-Using Agent Team's Assistant </a> </h1> <p align="center"> <b> Your Digital Twin Buddy </b> </p> <br/>
+﻿<div id="top"></div> <h1 align="center"> <a href="https://iamdivakarkumar.com/" style="text-decoration: none;" target="_blank"> <img height="240" src="./docs/images/DigitalTwinBuddy.png" alt="Cuata Logo"/> <br/> Cuata - Computer-Using Agent Team's Assistant </a> </h1> <p align="center"> <b> Your Digital Twin Buddy </b> </p> <br/>
 
 # Introduction
 
@@ -134,6 +134,61 @@ To actually perform actions like moving the mouse, typing, clicking links, valid
         }
     }
 ```
+
+## Browser Agent Workflow
+
+![Image description](https://dev-to-uploads.s3.amazonaws.com/uploads/articles/ljltxs8jrsbd0lmw1mm7.JPG)
+
+The "Browser Agent tool" is a powerful tool powered by Azure OpenAI and Semantic Kernel, designed to automate tasks and interact with systems intelligently. It operates in a continuous loop, where it processes instructions and breaks them down into manageable tasks for execution. Here's how it works:
+
+- Instruction Processing: The agent begins by analyzing the input instruction and then splits it into smaller, actionable tasks, ensuring each one is clear and achievable.
+
+- Task Execution: The tasks are executed by leveraging the appropriate plugins for each action. This could involve interacting with browsers, taking screenshots, or processing text.
+
+- Plugins Powering the Browser Agent:
+Chrome Plugin + Keyboard/Mouse Plugin: These plugins enable the agent to interact with web browsers in the same way a human would. It can simulate actions like typing, clicking, and navigating through different web pages.
+
+- Screenshot Plugin: This plugin allows the agent to capture a screenshot of the current screen, which is then sent to Azure OpenAI for analysis. This helps the agent understand what is displayed and validate if actions (such as clicking a button) have been completed correctly, creating a feedback loop for accurate task completion.
+
+- Locate Plugin: The locate plugin extracts and identifies text elements from the screen. It defines their exact boundaries and coordinates, enabling the agent to know exactly where to click or where to input text, thus improving precision in task execution. It does this effectively with the help of Azure OCR.
+
+- Summarize Plugin: The agent can take screenshots and request Azure OpenAI to summarize the content of the screen. This is particularly useful for reading lengthy articles, reports, or emails and providing concise summaries or key takeaways.
+
+<b> Output Flow: </b>
+
+Once the agent has completed its task, the results are pushed to external systems such as Windows applications, Outlook, or Word. This feature enables the agent to not only browse and collect information but also deliver tangible results by integrating seamlessly with other software and systems, making it a versatile and efficient assistant.
+
+# Teams Agent Workflow:
+
+![Image description](https://dev-to-uploads.s3.amazonaws.com/uploads/articles/06qcbohoqq3ga4o9q7ho.JPG)
+
+Teams Agent flow shows how Cuata acts like a personal assistant that attends your meetings, summarizes them, and keeps you informed.
+
+- At the core, we have the Computer Using Agent, which acts like a mini human assistant operating the computer. It uses different plugins like:
+    - Mouse Plugin
+    - Keyboard Plugin
+    - Chrome Plugin
+    - Screenshot Plugin
+    - Locate Plugin 
+
+These let it interact with the system just like a user.
+
+Inside this agent is the OpenCV Processor that does below actions 
+
+- Checks if you're present in front of the system or not.
+- It uses OpenCV face detection to figure out if your face is visible on the webcam.
+- This helps Cuata know when you’re active during a meeting or if you’ve stepped away.
+- That info can then be used to trigger smart decisions like:
+  - Sending you a summary when you're back
+  - Letting teammates know you’re away
+  - Or adjusting what to summarize based on who was present
+
+It’s part of the “Think → Select Strategy → Execute” loop that the agent follows.
+
+# Meetings Handling – Two Main Workflows
+
+There are two possible flows within the Teams Meetings Agent:
+
 
 # Sponsor
 
