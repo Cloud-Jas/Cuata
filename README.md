@@ -40,6 +40,7 @@ Another major challenge was summarizing long meetings. Turning extensive discuss
 
 👥 <b> "Cuata" - Your Digital Twin Buddy </b> who stays active, listens, thinks, and acts on your behalf when you need it most.
 
+⚙️ <b> Deep Customization Beyond Playwright/Browser Automation </b> While many solutions use Playwright or browser-use MCP libraries for automation, Cuata offers full low-level control over screen elements, enabling deeper customization for highly specific and dynamic use cases
 
 # Architecture
 
