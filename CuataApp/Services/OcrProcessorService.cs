@@ -147,8 +147,8 @@ public class OcrProcessorService
       float minY = box.Min(p => p.Y);
       float maxY = box.Max(p => p.Y);
 
-      float centerX = (minX + maxX) / 2;
-      float centerY = (minY + maxY) / 2;
+      float centerX = (minX * 0.2f) + (maxX * 0.8f);
+      float centerY = (minY * 0.2f) + (maxY * 0.8f);
 
       using var img = Image.FromFile(imagePath);
       double percentX = Math.Round(centerX / img.Width, 3);

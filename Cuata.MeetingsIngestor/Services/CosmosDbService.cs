@@ -64,13 +64,13 @@ public class CosmosDbService
    public async Task<List<Meeting>> GetUpcomingMeetingsAsync()
    {
       var now = DateTime.UtcNow;
-      var inTenMins = now.AddMinutes(10);
+      var inThreeMins = now.AddMinutes(3);
 
       var query = new QueryDefinition(
-          "SELECT * FROM c WHERE c.startTime >= @now AND c.startTime <= @in10 AND c.notified = false AND NOT IS_NULL(c.teamsLink)"
+          "SELECT * FROM c WHERE c.startTime >= @now AND c.startTime <= @in3 AND c.notified = false AND NOT IS_NULL(c.teamsLink)"
       )
       .WithParameter("@now", now)
-      .WithParameter("@in10", inTenMins);
+      .WithParameter("@in3", inThreeMins);
 
       var result = new List<Meeting>();
       var iterator = _container.GetItemQueryIterator<Meeting>(query);

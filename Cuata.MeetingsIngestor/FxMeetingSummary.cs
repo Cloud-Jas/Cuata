@@ -184,7 +184,7 @@ public class FxMeetingSummary
          You are provided with a list of summaries and their corresponding image URLs.
          Identify which summaries contain very important insights or action points.
          Try to consolidate the summaries into a single overall summary of the meeting.
-         Make sure to capture all the important details and provide a summary.
+         Make sure to capture all the important details and provide a summary for 100 lines.
          Don't miss any important details.
          
          Return in the below format don't add ```json and ``` at the start and end of the response.

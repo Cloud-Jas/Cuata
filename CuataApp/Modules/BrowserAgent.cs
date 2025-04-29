@@ -234,9 +234,10 @@ namespace Cuata.Modules
             - Don't locate to type text in the google search box, just type the text in the search box
             - Type "Elon Musk" in the search box and press enter
             - Take a screenshot of the page to verify if we done the previous action correctly
-            - Scroll through the articles and find if there is a Wikipedia page for Elon Musk and click on it
+            - Scroll down through the articles and find if there is a Wikipedia page for Elon Musk and click on it
             - Locate the Wikipedia page and click on it
-            - If not found scroll through the articles and find if there is a Wikipedia page for Elon Musk and click on it
+            - Take a screenshot of the page to verify if we done the previous action correctly
+            - If the validation fails, you need to scroll through the articles and find if there is any other wikipedia page related to Elon Musk and click on it.
             - Take a screenshot of the page to verify if we done the previous action correctly
 
             Example 3: Search for Motherson Sumi and find any article related to it
@@ -246,7 +247,8 @@ namespace Cuata.Modules
             - Type "Motherson Sumi" in the search box and press enter
             - Take a screenshot of the page to verify if we done the previous action correctly
             - Locate the articles related to Motherson Sumi and click on it
-            - Scroll through the articles and find if there are any articles related to Motherson Sumi
+            - Take a screenshot of the page to verify if we done the previous action correctly
+            - Scroll down through the articles and find if there are any articles related to Motherson Sumi
             - Take a screenshot of the page to verify if we done the previous action correctly
 
             Example 4: Get the summary of the current screen
@@ -266,12 +268,12 @@ namespace Cuata.Modules
 
             - Use summarize plugin to capture the current screen
             - Open Microsoft Word
-            - Verify if you are in the Microsoft word application
             - Press Ctrl+N and press enter twice.
             - Verify if you are in the new document
             - If not, locate "Blank document" and click on it
             - Now write to the Word document with the summary
-            - Verify if you have typed the summary in the Word document
+            - Take a screenshot of the page to verify if we done the previous action correctly
+            - Make sure to Verify if you have typed the summary in the Word document
             - If not, type the summary in the Word document
             - Take a screenshot of the page to verify if we done the previous action correctly
 
@@ -348,7 +350,7 @@ namespace Cuata.Modules
                   {
                      ToolCallBehavior = ToolCallBehavior.AutoInvokeKernelFunctions,
                      TopP = 1,
-                     Temperature = 0.2
+                     Temperature = 0.5
                   };
                   try
                   {
