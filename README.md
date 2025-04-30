@@ -175,6 +175,8 @@ Once the agent has completed its task, the results are pushed to external system
 
 # Steps to run the project locally
 
+- If you have 2 or more monitors, please make sure to set the primary monitor as the one where you want to run the project.
+
 - Relace the `appsettings.json` in the Cuata, Cuata.MeetingsIngestor and Cuata.OpenCV Project with the values
 
 ```json
